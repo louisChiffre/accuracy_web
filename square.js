@@ -1,5 +1,4 @@
-var reference;
-var player;
+var data;
 
 
 
@@ -24,45 +23,136 @@ function make_player_square()
 {
     return make_random_square(50, LENGTH, 50, LENGTH);
 }
+class EvaluateSquare extends Phaser.Scene {
 
-class square extends Phaser.Scene {
+    constructor ()
+    {
+        super({ key: 'EvaluateSquare' });
+        console.log('construct')
+    }
+
+    preload ()
+    {
+    }
+
+    create ()
+    {
+        graphics = this.add.graphics({ lineStyle: { width: 1, color: 0x00ff00 }, fillStyle: { color: 0xff0000, alpha:0.1 }});
+        graphics.clear();
+        graphics.save();
+        graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        graphics.fillStyle(REFERENCE_COLOR, 0.1);
+        graphics.fillRectShape(data.reference);
+        graphics.fillStyle(RED, 0.1);
+        graphics.fillRectShape(data.player);
+        graphics.restore();
+        var textureManager = this.textures;
+        var scene = this.scene;
+        this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
+        {
+            textureManager.addImage('snap', image);
+            var i; 
+            var j;
+            var k;
+            for (i = 0; i < LENGTH; i++) {
+                for (j = 0; j < LENGTH; j++) {
+                    //console.log(i,j);
+                    k = scene.scene.textures.getPixel(i,j, 'snap');
+                }
+            }
+            //scene.scene.textures.getPixel(0,0, 'snap');
+            //console.log(scene.scene.textures.getPixel(0,0, 'snap'));0
+            textureManager.remove('snap');
+            console.log('done')
+        });
+
+    }
+
+}
+class Square extends Phaser.Scene {
     constructor() {
-        super("rectangle");
+        super("Square");
     }
 
     create()
     {
         graphics = this.add.graphics({ lineStyle: { width: 1, color: 0x00ff00 }, fillStyle: { color: 0xff0000 }});
-        reference = make_reference_square(); 
-        player = make_player_square();
-        //point = new Phaser.Geom.Rectangle(0, 0, 16, 16);
+        data = {
+            'reference' :make_reference_square() ,
+            'player' :make_player_square()
+
+        };
         cursors = this.input.keyboard.createCursorKeys();
-        //var shift_key = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.B);
+        this.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            this.scene.start('EvaluateSquare');
+
+        }, this);
 
     }
     update ()
     {
+        graphics.clear();
+        if (cursors.space.isDown)
+        {
+            
+            //var scene =this.scene;
+            //var textureManager = this.textures;
+
+            ////graphics.save()
+            ////graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+            ////graphics.lineStyle(1, RED, 1.0);
+            ////graphics.strokeRectShape(player);
+            ////graphics.restore()
+
+            //graphics.save();
+            //graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+
+            //graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
+            //graphics.strokeRectShape(reference);
+
+            //graphics.restore();
+
+            //graphics.save();
+
+            //graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+            //graphics.lineStyle(1, RED, 1.0);
+            //graphics.strokeRectShape(player);
+            //graphics.restore();
+
+
+            //this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
+            //{
+            //    textureManager.addImage('snap', image);
+            //    scene.scene.textures.getPixel(0,0, 'snap');
+            //    textureManager.remove('snap');
+            //    console.log('done')
+            //    //scene.restart()
+            //    scene.start('evaluate')
+            //});
+            //this.scene.restart();
+
+        }
         if (cursors.shift.isDown)
             SPEED=10;
         else
             SPEED=1.0 
-        if (cursors.up.isDown)  player.height +=   -SPEED
-        if (cursors.down.isDown)  player.height +=    SPEED
-        if (cursors.left.isDown)  player.width += -SPEED
-        if (cursors.right.isDown) player.width +=  SPEED
+        if (cursors.up.isDown)    data.player.height +=   -SPEED
+        if (cursors.down.isDown)  data.player.height +=    SPEED
+        if (cursors.left.isDown)  data.player.width += -SPEED
+        if (cursors.right.isDown) data.player.width +=  SPEED
 
-        graphics.clear();
 
         graphics.save();
         graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeRectShape(reference);
+        graphics.strokeRectShape(data.reference);
         graphics.restore();
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         graphics.lineStyle(1, RED, 1.0);
-        graphics.strokeRectShape(player);
+        graphics.strokeRectShape(data.player);
         graphics.restore();
 
         graphics.fillStyle(0xff00ff);

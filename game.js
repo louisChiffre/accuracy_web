@@ -21,7 +21,7 @@ var config = {
     height: 800,
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
-    scene: [square]
+    scene: [Square, EvaluateSquare]
 };
 
 function rand(min,max)
