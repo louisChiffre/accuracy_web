@@ -23,8 +23,10 @@ function make_player_square()
 {
     return make_random_square(50, LENGTH, 50, LENGTH);
 }
+
 class EvaluateSquare extends Phaser.Scene {
 
+ 
     constructor ()
     {
         super({ key: 'EvaluateSquare' });
@@ -33,42 +35,85 @@ class EvaluateSquare extends Phaser.Scene {
 
     preload ()
     {
+
     }
 
     create ()
     {
         graphics = this.add.graphics({ lineStyle: { width: 1, color: 0x00ff00 }, fillStyle: { color: 0xff0000, alpha:0.1 }});
-        graphics.clear();
-        graphics.save();
-        graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-        graphics.fillStyle(REFERENCE_COLOR, 0.1);
-        graphics.fillRectShape(data.reference);
-        graphics.fillStyle(RED, 0.1);
-        graphics.fillRectShape(data.player);
-        graphics.restore();
+
         var textureManager = this.textures;
         var scene = this.scene;
+
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
         {
-            textureManager.addImage('snap', image);
-            var i; 
-            var j;
-            var k;
+            var canvas = textureManager.createCanvas('snap', image.width, image.height);
+            canvas.draw(0, 0, image);
+            var data = canvas.imageData.data
+            var i,j,k;
+            var key,r,g,b;
+            var M = {};
+            var intersection_key = [76,53];
+            var only_ref_key = [0,76];
+            var only_player_key = [76,0];
+            //0,76,0,255: 13940 only ref
+            //76,0,0,255: 24120 only player
+            //76,53,0,255: 29520 intersection
+
             for (i = 0; i < LENGTH; i++) {
                 for (j = 0; j < LENGTH; j++) {
-                    //console.log(i,j);
-                    k = scene.scene.textures.getPixel(i,j, 'snap');
+                    k =(i + j*LENGTH)*4
+                    r = data[k];
+                    g = data[k+1];
+                    key = [r,g];
+                    if (key in M)
+                    {
+                        M[key] = M[key]+1;
+                    }
+                    else
+                    {
+                        M[key] = 1;
+                    }
+                    //k = scene.scene.textures.getPixel(i,j, 'snap');
                 }
             }
-            //scene.scene.textures.getPixel(0,0, 'snap');
-            //console.log(scene.scene.textures.getPixel(0,0, 'snap'));0
-            textureManager.remove('snap');
-            console.log('done')
+            var only_ref = M[only_ref_key]||0
+            var only_player = M[only_player_key]||0
+            var intersection = M[intersection_key]||0
+            var union = only_ref + only_player + intersection
+            var score = intersection/union
+            console.log(score)
+            console.log(M)
+
         });
 
     }
 
+    update()
+    {
+        graphics.clear();
+        graphics.save();
+        graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        graphics.fillStyle(GREEN, 0.3);
+        graphics.fillRectShape(data.reference);
+
+
+        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
+        graphics.strokeRectShape(data.reference);
+
+
+        graphics.fillStyle(RED, 0.3);
+        graphics.fillRectShape(data.player);
+        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
+        graphics.strokeRectShape(data.player);
+        graphics.restore();
+
+    }
+
+ 
+
 }
+
 class Square extends Phaser.Scene {
     constructor() {
         super("Square");
@@ -93,50 +138,10 @@ class Square extends Phaser.Scene {
     update ()
     {
         graphics.clear();
-        if (cursors.space.isDown)
-        {
-            
-            //var scene =this.scene;
-            //var textureManager = this.textures;
-
-            ////graphics.save()
-            ////graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-            ////graphics.lineStyle(1, RED, 1.0);
-            ////graphics.strokeRectShape(player);
-            ////graphics.restore()
-
-            //graphics.save();
-            //graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-
-            //graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-            //graphics.strokeRectShape(reference);
-
-            //graphics.restore();
-
-            //graphics.save();
-
-            //graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-            //graphics.lineStyle(1, RED, 1.0);
-            //graphics.strokeRectShape(player);
-            //graphics.restore();
-
-
-            //this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
-            //{
-            //    textureManager.addImage('snap', image);
-            //    scene.scene.textures.getPixel(0,0, 'snap');
-            //    textureManager.remove('snap');
-            //    console.log('done')
-            //    //scene.restart()
-            //    scene.start('evaluate')
-            //});
-            //this.scene.restart();
-
-        }
         if (cursors.shift.isDown)
             SPEED=10;
         else
-            SPEED=1.0 
+            SPEED=3.0 
         if (cursors.up.isDown)    data.player.height +=   -SPEED
         if (cursors.down.isDown)  data.player.height +=    SPEED
         if (cursors.left.isDown)  data.player.width += -SPEED
@@ -155,8 +160,6 @@ class Square extends Phaser.Scene {
         graphics.strokeRectShape(data.player);
         graphics.restore();
 
-        graphics.fillStyle(0xff00ff);
-        //graphics.fillRect(point.x - 8, point.y - 8, point.width, point.height);
     }
 }
 console.log('done')

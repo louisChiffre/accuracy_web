@@ -4,6 +4,7 @@ var HEIGHT = 640;
 
 var WHITE=0xFFFFFF;
 var RED=0xFF0000;
+var GREEN=0x00FF00;
 
 
 LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
