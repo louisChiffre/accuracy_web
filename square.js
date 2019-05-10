@@ -6,8 +6,8 @@ function make_random_square(min_height, max_height, min_width, max_width)
 {
     console.assert(min_height <= max_height)
     console.assert(min_width <= max_width)
-    var height = rand(min_height, max_height);  
-    var width =  rand(min_width, max_height);
+    var height = Phaser.Math.Between(min_height, max_height);  
+    var width =  Phaser.Math.Between(min_width, max_height);
     return new Phaser.Geom.Rectangle(0, 0, width, height);
 
 }
@@ -23,6 +23,22 @@ function make_player_square()
 {
     return make_random_square(50, LENGTH, 50, LENGTH);
 }
+
+
+function draw_reference()
+{
+    graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
+    graphics.strokeRectShape(data.reference);
+}
+
+function draw_player()
+{
+    graphics.lineStyle(1, RED, 1.0);
+    graphics.strokeRectShape(data.player);
+}
+
+
+
 
 class EvaluateSquare extends Phaser.Scene {
 
@@ -41,6 +57,13 @@ class EvaluateSquare extends Phaser.Scene {
     create ()
     {
         graphics = this.add.graphics({ lineStyle: { width: 1, color: 0x00ff00 }, fillStyle: { color: 0xff0000, alpha:0.1 }});
+
+        cursors = this.input.keyboard.createCursorKeys();
+        this.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            this.scene.start('Square');
+
+        }, this);
 
         var textureManager = this.textures;
         var scene = this.scene;
@@ -84,6 +107,7 @@ class EvaluateSquare extends Phaser.Scene {
             var score = intersection/union
             console.log(score)
             console.log(M)
+            textureManager.remove('snap');
 
         });
 
@@ -96,23 +120,14 @@ class EvaluateSquare extends Phaser.Scene {
         graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         graphics.fillStyle(GREEN, 0.3);
         graphics.fillRectShape(data.reference);
-
-
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeRectShape(data.reference);
-
-
         graphics.fillStyle(RED, 0.3);
         graphics.fillRectShape(data.player);
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeRectShape(data.player);
         graphics.restore();
 
     }
 
- 
-
 }
+
 
 class Square extends Phaser.Scene {
     constructor() {
@@ -141,7 +156,7 @@ class Square extends Phaser.Scene {
         if (cursors.shift.isDown)
             SPEED=10;
         else
-            SPEED=3.0 
+            SPEED=2; 
         if (cursors.up.isDown)    data.player.height +=   -SPEED
         if (cursors.down.isDown)  data.player.height +=    SPEED
         if (cursors.left.isDown)  data.player.width += -SPEED
@@ -150,16 +165,15 @@ class Square extends Phaser.Scene {
 
         graphics.save();
         graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeRectShape(data.reference);
+        draw_reference()
         graphics.restore();
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        graphics.lineStyle(1, RED, 1.0);
-        graphics.strokeRectShape(data.player);
+        draw_player();
         graphics.restore();
 
     }
 }
-console.log('done')
+
+
