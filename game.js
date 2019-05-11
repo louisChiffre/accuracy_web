@@ -22,24 +22,58 @@ var config = {
     height: 800,
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
-    scene: [Square, EvaluateSquare]
+    pixelArt:true,
+    scene: [Square, EvaluateSquare, Circle]
 };
 
-function rand(min,max)
-{
-     return Math.random() * (+max - +min) + +min;
-}
-
+var data;
 
 var graphics;
 var cursors;
-
-
-
-
 var player;
 var reference;
 
 
 var game = new Phaser.Game(config);
 var SPEED = 1.0
+
+function calc_score(textureManager, image)
+{
+    var canvas = textureManager.createCanvas('snap', image.width, image.height);
+    canvas.draw(0, 0, image);
+    var data = canvas.imageData.data
+    var i,j,k;
+    var key,r,g;
+    var M = {};
+    var intersection_key = [76,53];
+    var only_ref_key = [0,76];
+    var only_player_key = [76,0];
+
+    for (i = 0; i < LENGTH; i++) {
+        for (j = 0; j < LENGTH; j++) {
+            k =(i + j*LENGTH)*4
+            r = data[k];
+            g = data[k+1];
+            key = [r,g];
+            if (key in M)
+            {
+                M[key] = M[key]+1;
+            }
+            else
+            {
+                M[key] = 1;
+            }
+            //k = scene.scene.textures.getPixel(i,j, 'snap');
+        }
+    }
+    var only_ref = M[only_ref_key]||0;
+    var only_player = M[only_player_key]||0;
+    var intersection = M[intersection_key]||0;
+    var union = only_ref + only_player + intersection;
+    var score = intersection/union;
+    console.log(score)
+    textureManager.remove('snap');
+    return score;
+}
+
+
