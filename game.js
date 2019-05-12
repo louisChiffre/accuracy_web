@@ -23,7 +23,7 @@ var config = {
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
     pixelArt:true,
-    scene: [Square, EvaluateSquare, Circle]
+    //scene: [Square, EvaluateSquare, Circle]
 };
 
 var data;
@@ -35,6 +35,9 @@ var reference;
 
 
 var game = new Phaser.Game(config);
+game.scene.add(square_config.name, Polygon, true, square_config);
+game.scene.add(square_config.eval_name, EvaluateSquare, false, square_config);
+
 var SPEED = 1.0
 
 function calc_score(textureManager, image)

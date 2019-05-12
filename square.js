@@ -8,8 +8,9 @@ function make_random_square(min_height, max_height, min_width, max_width)
 
 }
 
-var SquareStruct = {
+var square_config = {
     'name': 'Square',
+    'eval_name': 'EvalSquare',
     'make_reference': function(){
         return make_random_square(50, LENGTH, 50, LENGTH);
     },
@@ -43,21 +44,21 @@ var SquareStruct = {
 
 
 class EvaluateSquare extends Phaser.Scene {
-    constructor ()
+    constructor (config)
     {
-        super({ key: 'EvaluateSquare' });
-        console.log('construct')
+        super(config);
     }
 
 
-    create ()
+    create (data)
     {
         graphics = this.add.graphics();
+        this.data_=data
 
         cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start('Square');
+            this.scene.start(this.data_.config.name);
 
         }, this);
 
@@ -74,33 +75,33 @@ class EvaluateSquare extends Phaser.Scene {
         graphics.clear();
         graphics.save();
         graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-        struct.draw_evaluation(data);
+        this.data_.config.draw_evaluation(this.data_);
         graphics.restore();
 
     }
 
 }
 
-var struct;
+var polygon_config;
 
-class Square extends Phaser.Scene {
-    constructor() {
-        super("Square");
+class Polygon extends Phaser.Scene {
+    constructor(config) {
+        super(config);
     }
 
-    create()
+    create(config)
     {
-        struct = SquareStruct;
-        graphics = this.add.graphics();//{ lineStyle: { width: 1, color: 0x00ff00 }, fillStyle: { color: 0xff0000 }});
-        data = {
-            'reference' :struct.make_reference() ,
-            'player' :struct.make_player()
-
+        console.log(config)
+        graphics = this.add.graphics();
+        this.data_ = {
+            'reference' :config.make_reference() ,
+            'player' :config.make_player(),
+            'config': config,
         };
         cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start('EvaluateSquare');
+            this.scene.start(this.data_.config.eval_name, this.data_);
 
         }, this);
 
@@ -112,20 +113,20 @@ class Square extends Phaser.Scene {
             SPEED=10;
         else
             SPEED=2; 
-        if (cursors.up.isDown)    data.player.height +=   -SPEED
-        if (cursors.down.isDown)  data.player.height +=    SPEED
-        if (cursors.left.isDown)  data.player.width += -SPEED
-        if (cursors.right.isDown) data.player.width +=  SPEED
+        if (cursors.up.isDown)    this.data_.player.height +=   -SPEED
+        if (cursors.down.isDown)  this.data_.player.height +=    SPEED
+        if (cursors.left.isDown)  this.data_.player.width += -SPEED
+        if (cursors.right.isDown) this.data_.player.width +=  SPEED
 
 
         graphics.save();
         graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-        struct.draw_reference(data)
+        this.data_.config.draw_reference(this.data_)
         graphics.restore();
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        struct.draw_player(data);
+        this.data_.config.draw_player(this.data_);
         graphics.restore();
 
     }
