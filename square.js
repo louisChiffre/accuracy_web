@@ -5,12 +5,10 @@ function make_random_square(min_height, max_height, min_width, max_width)
     var height = Phaser.Math.Between(min_height, max_height);  
     var width =  Phaser.Math.Between(min_width, max_height);
     return new Phaser.Geom.Rectangle(0, 0, width, height);
-
 }
 
 function make_random_circle(LENGTH)
 {
-
     return new Phaser.Geom.Circle(LENGTH*0.5, LENGTH*0.5, Phaser.Math.Between(50, 0.4*LENGTH));
 }
 
@@ -116,7 +114,6 @@ class EvaluatePolygon extends Phaser.Scene {
         graphics = this.add.graphics();
         this.data_=data
 
-        cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(this.data_.config.name);
@@ -143,7 +140,6 @@ class EvaluatePolygon extends Phaser.Scene {
 
 }
 
-var polygon_config;
 
 class Polygon extends Phaser.Scene {
     constructor(config) {
@@ -152,14 +148,22 @@ class Polygon extends Phaser.Scene {
 
     create(config)
     {
-        console.log(config)
         graphics = this.add.graphics();
         this.data_ = {
             'reference' :config.make_reference() ,
             'player' :config.make_player(),
             'config': config,
         };
-        cursors = this.input.keyboard.createCursorKeys();
+        this.cursors = this.input.keyboard.createCursorKeys();
+        this.input.keyboard.on('keydown', function (event) {
+            if(event.keyCode in code2game)
+            {
+                this.scene.start(code2game[event.keyCode]);
+
+            }
+        }, this);
+        
+
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(this.data_.config.eval_name, this.data_);
@@ -170,7 +174,7 @@ class Polygon extends Phaser.Scene {
     update ()
     {
         graphics.clear();
-        this.data_.config.process_input(cursors, this.data_);
+        this.data_.config.process_input(this.cursors, this.data_);
 
 
         graphics.save();

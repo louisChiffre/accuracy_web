@@ -29,21 +29,22 @@ var config = {
 var data;
 
 var graphics;
-var cursors;
 var player;
 var reference;
 
 
 var game = new Phaser.Game(config);
 
-function add_polygon_game(config)
+var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
+var code2game = {}
+function add_polygon_game(config, index)
 {
     game.scene.add(config.name, Polygon, true, config);
     game.scene.add(config.eval_name, EvaluatePolygon, false, config);
+    code2game[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
 }
-add_polygon_game(circle_config)
-add_polygon_game(square_config)
+[circle_config, square_config].forEach(add_polygon_game)
 
 
 var SPEED = 1.0
