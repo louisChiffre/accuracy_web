@@ -35,8 +35,15 @@ var reference;
 
 
 var game = new Phaser.Game(config);
-game.scene.add(square_config.name, Polygon, true, square_config);
-game.scene.add(square_config.eval_name, EvaluateSquare, false, square_config);
+
+function add_polygon_game(config)
+{
+    game.scene.add(config.name, Polygon, true, config);
+    game.scene.add(config.eval_name, EvaluatePolygon, false, config);
+
+}
+add_polygon_game(square_config)
+
 
 var SPEED = 1.0
 

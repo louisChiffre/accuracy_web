@@ -34,6 +34,18 @@ var square_config = {
         graphics.fillRectShape(data.reference);
         graphics.fillStyle(RED, 0.3);
         graphics.fillRectShape(data.player);
+    },
+    'process_input': function(cursors, data)
+    {
+        if (cursors.shift.isDown)
+            SPEED=10;
+        else
+            SPEED=2; 
+        if (cursors.up.isDown)    data.player.height +=   -SPEED
+        if (cursors.down.isDown)  data.player.height +=    SPEED
+        if (cursors.left.isDown)  data.player.width += -SPEED
+        if (cursors.right.isDown) data.player.width +=  SPEED
+
     }
 
 };
@@ -43,7 +55,7 @@ var square_config = {
 
 
 
-class EvaluateSquare extends Phaser.Scene {
+class EvaluatePolygon extends Phaser.Scene {
     constructor (config)
     {
         super(config);
@@ -109,14 +121,7 @@ class Polygon extends Phaser.Scene {
     update ()
     {
         graphics.clear();
-        if (cursors.shift.isDown)
-            SPEED=10;
-        else
-            SPEED=2; 
-        if (cursors.up.isDown)    this.data_.player.height +=   -SPEED
-        if (cursors.down.isDown)  this.data_.player.height +=    SPEED
-        if (cursors.left.isDown)  this.data_.player.width += -SPEED
-        if (cursors.right.isDown) this.data_.player.width +=  SPEED
+        this.data_.config.process_input(cursors, this.data_);
 
 
         graphics.save();
