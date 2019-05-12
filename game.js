@@ -42,6 +42,7 @@ function add_polygon_game(config)
     game.scene.add(config.eval_name, EvaluatePolygon, false, config);
 
 }
+add_polygon_game(circle_config)
 add_polygon_game(square_config)
 
 
