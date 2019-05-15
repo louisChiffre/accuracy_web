@@ -44,7 +44,7 @@ function add_polygon_game(config, index)
     code2game[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
 }
-[circle_config, square_config].forEach(add_polygon_game)
+[blob_config, circle_config, square_config].forEach(add_polygon_game)
 
 
 var SPEED = 1.0
