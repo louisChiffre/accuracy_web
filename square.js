@@ -52,7 +52,6 @@ function get_player_relative_position(pointer)
 
 var blob_config = {
     'name': 'Blob',
-    'done': false,
     'eval_name': 'EvalBlob',
     'make_reference': function(){
         var points = make_random_polygon(LENGTH);
@@ -62,7 +61,8 @@ var blob_config = {
         var points = [0,0,100,0];
         return {
             polygon:new Phaser.Geom.Polygon(points),
-            pointer: 1};
+            pointer: 1,
+            done: false};
     },
     'draw_reference': function(data)
     {
@@ -74,6 +74,15 @@ var blob_config = {
     {
         graphics.lineStyle(1, RED, 1.0);
         graphics.strokePoints(data.player.polygon.points);
+        if(data.player.done)
+        {
+            //for(var circle of data.player.circles)
+            //{
+            //    console.log(circle);
+            //    graphics.strokeCircleShape(circle);
+            //}
+
+        }
     },
 
     'draw_evaluation': function(data)
@@ -86,64 +95,85 @@ var blob_config = {
     },
     'process_cursors_input': function(cursors, data)
     {
-        /*if (cursors.shift.isDown)
-            SPEED=5;
-        else
-            SPEED=2; 
-        if (cursors.space.isDown)
-        {
-            data.player.polygon.points.push(new Phaser.Geom.Point(100,100));
-            data.player.pointer = data.player.pointer + 1 ;
-        }
-        var i = data.player.pointer;
-        if (cursors.up.isDown)    data.player.polygon.points[i].y =   -SPEED +  data.player.polygon.points[i].y;
-        if (cursors.down.isDown)  data.player.polygon.points[i].y =    SPEED +  data.player.polygon.points[i].y;
-        if (cursors.left.isDown)  data.player.polygon.points[i].x =   -SPEED +  data.player.polygon.points[i].x;
-        if (cursors.right.isDown) data.player.polygon.points[i].x =    SPEED +  data.player.polygon.points[i].x;
-        */
-
 
     },
 
     'pointermove': function(pointer, data)
     {
-        data.player.polygon.points[data.player.pointer] = get_player_relative_position(pointer);
-
-    },
-    'pointerdown': function(pointer, data)
-    {
-        console.log('are we done %s', data.config.done)
-        if(data.config.done==false)
+        if(data.player.done==false)
         {
             var position =get_player_relative_position(pointer);
             var dist = Phaser.Math.Distance.Between(
                 position.x,
-                data.player.polygon.points[0].x,
                 position.y,
-                data.player.polygon.points[0].y);
-            if(dist < 10)
+                data.player.polygon.points[0].x,
+                data.player.polygon.points[0].y,
+                );
+            if(dist < 20)
+            {
+                data.player.polygon.points[data.player.pointer] = data.player.polygon.points[0];
+            }
+            else
+            {
+                data.player.polygon.points[data.player.pointer] = get_player_relative_position(pointer);
+            }
+        }
+
+    },
+    'pointerdown': function(pointer, data, scene)
+    {
+        if(data.player.done==false)
+        {
+            data.player.done = data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
+            console.log('are we done %s', data.player.done)
+
+            if(data.player.done)
             {
                 data.player.polygon.points.push(data.player.polygon.points[0]);
                 data.player.pointer = 1 ;
-                data.config.done = true;
-                console.log('aa')
+                data.player.done = true;
+                for(var point of data.player.polygon.points)
+                {
+                    var circle_real =  scene.add.circle(point.x + PLAYER_ORIGIN.x, point.y+ PLAYER_ORIGIN.y, 10)
+                    circle_real._point = point;
+                    circle_real.setInteractive();
+                    scene.input.setDraggable(circle_real);
+
+                }
+
             } else
             {
-                data.player.polygon.points[data.player.pointer] = position; 
+                var position = get_player_relative_position(pointer);
                 data.player.polygon.points.push(position);
                 data.player.pointer = data.player.pointer + 1 ;
-                console.log(dist);
             }
         }
 
 
 
     },
+    'drag': function(pointer, gameObject, dragX, dragY, scene)
+    {
+        gameObject.x = dragX;
+        gameObject.y = dragY;
+        gameObject._point.x = dragX - PLAYER_ORIGIN.x;
+        gameObject._point.y = dragY - PLAYER_ORIGIN.y;
+
+    },
+
+
+    'inputs': {
+        'Tab': function(data) {
+            console.log('TAB')
+            data.player.pointer=(data.player.pointer+1)%data.player.polygon.points.length;
+        }
+    }
 
 
 }
 
 var circle_config = {
+    'inputs': {},
     'name': 'Circle',
     'eval_name': 'EvalCircle',
     'make_reference': function(){
@@ -186,6 +216,7 @@ var circle_config = {
 };
 
 var square_config = {
+    'inputs': {},
     'name': 'Square',
     'eval_name': 'EvalSquare',
     'make_reference': function(){
@@ -290,18 +321,26 @@ class Polygon extends Phaser.Scene {
 
     create(config)
     {
+        console.log('creating config')
+        console.log(config)
         graphics = this.add.graphics();
         this.data_ = {
             'reference' :config.make_reference() ,
             'player' :config.make_player(),
-            'config': config,
         };
+        this.data_.config = config;
+
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', function (event) {
+            console.log(this.data_.config);
             if(event.keyCode in code2game)
             {
                 this.scene.start(code2game[event.keyCode]);
 
+            }
+            if(event.key in this.data_.config.inputs)
+            {
+                config.inputs[event.key](this.data_);
             }
         }, this);
         
@@ -323,13 +362,25 @@ class Polygon extends Phaser.Scene {
         }
         if ('pointerdown' in config)
         {
+              var scene = this;
               this.input.on('pointerdown', function (pointer) {
 
-                    config.pointerdown(pointer, this.data_);
+                    config.pointerdown(pointer, this.data_, scene);
 
                 }, this);
 
         }
+        if ('drag' in config)
+        {
+              console.log('set drag');
+              this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
+
+                    config.drag(pointer, gameObject, dragX, dragY, this);
+
+                }, this);
+
+        }
+
 
     }
     update ()
