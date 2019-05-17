@@ -205,7 +205,7 @@ var circle_config = {
         if (cursors.shift.isDown)
             SPEED=5;
         else
-            SPEED=2; 
+            SPEED=1; 
         if (cursors.up.isDown)    data.player.radius +=   -SPEED
         if (cursors.down.isDown)  data.player.radius +=    SPEED
         if (cursors.left.isDown)  data.player.radius += -SPEED
@@ -248,7 +248,7 @@ var square_config = {
         if (cursors.shift.isDown)
             SPEED=10;
         else
-            SPEED=2; 
+            SPEED=1; 
         if (cursors.up.isDown)    data.player.height +=   -SPEED
         if (cursors.down.isDown)  data.player.height +=    SPEED
         if (cursors.left.isDown)  data.player.width += -SPEED
