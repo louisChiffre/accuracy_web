@@ -152,7 +152,7 @@ var blob_config = {
 
 
     },
-    'drag': function(pointer, gameObject, dragX, dragY, scene)
+    'drag': function(pointer, gameObject, dragX, dragY)
     {
         gameObject.x = dragX;
         gameObject.y = dragY;
@@ -274,7 +274,7 @@ class EvaluatePolygon extends Phaser.Scene {
     {
         graphics = this.add.graphics();
         this.data_=data
-
+        this.score_text = this.add.text(STATS_ORIGIN.x, STATS_ORIGIN.y, '').setFontSize(64).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
         this.input.keyboard.on('keydown_ENTER', function (event)
         {
             this.scene.start(this.data_.config.name);
@@ -282,10 +282,14 @@ class EvaluatePolygon extends Phaser.Scene {
         }, this);
 
         var textureManager = this.textures;
+        var scene = this;
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
         {
-            calc_score(textureManager, image);
+            var score = calc_score(textureManager, image)*100;
+            scene.score_text.setText(score.toFixed(0));
         });
+        this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
+
 
     }
 
@@ -300,13 +304,16 @@ class EvaluatePolygon extends Phaser.Scene {
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_reference(this.data_)
+
+        graphics.fillStyle(0x000000, 0.7);
+        graphics.fillRectShape(this.blinder);
+
         graphics.restore();
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
         graphics.restore();
-
 
 
     }
@@ -321,8 +328,6 @@ class Polygon extends Phaser.Scene {
 
     create(config)
     {
-        console.log('creating config')
-        console.log(config)
         graphics = this.add.graphics();
         this.data_ = {
             'reference' :config.make_reference() ,
@@ -330,6 +335,7 @@ class Polygon extends Phaser.Scene {
         };
         this.data_.config = config;
 
+        this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', function (event) {
             console.log(this.data_.config);
@@ -372,10 +378,8 @@ class Polygon extends Phaser.Scene {
         }
         if ('drag' in config)
         {
-              console.log('set drag');
               this.input.on('drag', function (pointer, gameObject, dragX, dragY) {
-
-                    config.drag(pointer, gameObject, dragX, dragY, this);
+                    config.drag(pointer, gameObject, dragX, dragY);
 
                 }, this);
 
@@ -396,8 +400,12 @@ class Polygon extends Phaser.Scene {
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        //graphics.lineStyle(1, WHITE, 0.1);
+        //graphics.strokeRectShape(this.frame);
         this.data_.config.draw_player(this.data_);
         graphics.restore();
+
+        //this.score.setColor(WHITE);
 
     }
 }

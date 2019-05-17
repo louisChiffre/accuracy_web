@@ -11,7 +11,7 @@ LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 
 var REFERENCE_ORIGIN ={x:3,y:3}
 var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH} 
-var STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:LENGTH}
+var STATS_ORIGIN = {x:LENGTH, y:REFERENCE_ORIGIN.y}
 
 var TEXT_HEIGHT = 15
 
@@ -34,6 +34,12 @@ var reference;
 
 
 var game = new Phaser.Game(config);
+var stats_data = [];
+
+function update_stats(stats)
+{
+    stats_data.push(stats)
+}
 
 var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
 var code2game = {}
