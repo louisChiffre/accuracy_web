@@ -10,8 +10,11 @@ var GREEN=0x00FF00;
 LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 
 var REFERENCE_ORIGIN ={x:3,y:3}
-var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH} 
-var STATS_ORIGIN = {x:LENGTH, y:REFERENCE_ORIGIN.y}
+var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH};
+var STATS_ORIGIN = {x:LENGTH, y:REFERENCE_ORIGIN.y};
+var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:LENGTH+BORDER};
+var PLAYER_NAME = 'Laurent Test';
+
 
 var TEXT_HEIGHT = 15
 
@@ -94,4 +97,7 @@ function calc_score(textureManager, image)
     return score;
 }
 
+//var name = prompt('Enter your name');
+//PLAYER_NAME = name;
+//this.name_text.setText(PLAYER_NAME);
 

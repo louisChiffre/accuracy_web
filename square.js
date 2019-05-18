@@ -205,7 +205,7 @@ var circle_config = {
         if (cursors.shift.isDown)
             SPEED=5;
         else
-            SPEED=1; 
+            SPEED=0.5; 
         if (cursors.up.isDown)    data.player.radius +=   -SPEED
         if (cursors.down.isDown)  data.player.radius +=    SPEED
         if (cursors.left.isDown)  data.player.radius += -SPEED
@@ -262,7 +262,6 @@ var square_config = {
 
 
 
-
 class EvaluatePolygon extends Phaser.Scene {
     constructor (config)
     {
@@ -275,6 +274,7 @@ class EvaluatePolygon extends Phaser.Scene {
         graphics = this.add.graphics();
         this.data_=data
         this.score_text = this.add.text(STATS_ORIGIN.x, STATS_ORIGIN.y, '').setFontSize(64).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
+        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontFamily('Arial').setPadding({ right: 16 });
         this.input.keyboard.on('keydown_ENTER', function (event)
         {
             this.scene.start(this.data_.config.name);
@@ -285,8 +285,16 @@ class EvaluatePolygon extends Phaser.Scene {
         var scene = this;
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
         {
-            var score = calc_score(textureManager, image)*100;
-            scene.score_text.setText(score.toFixed(0));
+            var score = calc_score(textureManager, image);
+            var stat  = {
+                time: Date.now(),
+                name:scene.data_.config.name,
+                score:score};
+            var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
+            stats.push(stat)
+            localStorage.setItem(PLAYER_NAME, JSON.stringify(stats));
+            //console.log(stats);
+            scene.score_text.setText((1000*score).toFixed(0));
         });
         this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
 
@@ -315,7 +323,6 @@ class EvaluatePolygon extends Phaser.Scene {
         this.data_.config.draw_player(this.data_);
         graphics.restore();
 
-
     }
 
 }
@@ -334,6 +341,7 @@ class Polygon extends Phaser.Scene {
             'player' :config.make_player(),
         };
         this.data_.config = config;
+        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
 
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -356,6 +364,8 @@ class Polygon extends Phaser.Scene {
             this.scene.start(this.data_.config.eval_name, this.data_);
 
         }, this);
+
+
 
         if ('pointermove' in config)
         {
