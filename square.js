@@ -61,17 +61,22 @@ var blob_config = {
         var points = [0,0,100,0];
         return {
             polygon:new Phaser.Geom.Polygon(points),
+            square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
             pointer: 1,
             done: false};
     },
     'draw_reference': function(data)
     {
+        graphics.lineStyle(1, WHITE, 0.2);
+        graphics.strokeRectShape(data.player.square);
         graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
         graphics.strokePoints(data.reference.points);
         //graphics.fillPoints(data.reference.points);
     },
     'draw_player': function(data)
     {
+        graphics.lineStyle(1, WHITE, 0.2);
+        graphics.strokeRectShape(data.player.square);
         graphics.lineStyle(1, RED, 1.0);
         graphics.strokePoints(data.player.polygon.points);
         if(data.player.done)
@@ -258,7 +263,17 @@ var square_config = {
 
 };
 
-
+var markers = [
+    { name: 'alien death', start: 1, duration: 1.0, config: {} },
+    { name: 'boss hit', start: 3, duration: 0.5, config: {} },
+    { name: 'escape', start: 4, duration: 3.2, config: {} },
+    { name: 'meow', start: 8, duration: 0.5, config: {} },
+    { name: 'numkey', start: 9, duration: 0.1, config: {} },
+    { name: 'ping', start: 10, duration: 1.0, config: {} },
+    { name: 'death', start: 12, duration: 4.2, config: {} },
+    { name: 'shot', start: 17, duration: 1.0, config: {} },
+    { name: 'squit', start: 19, duration: 0.3, config: {} }
+];
 
 
 
@@ -266,6 +281,17 @@ class EvaluatePolygon extends Phaser.Scene {
     constructor (config)
     {
         super(config);
+    }
+
+    preload()
+    {
+
+        //this.load.audio('sfx', [
+        //    'assets/fx_mixdown.ogg',
+        //    'assets/fx_mixdown.mp3'
+        //    ], {
+        //    instances: 4
+        //});
     }
 
 
@@ -281,6 +307,15 @@ class EvaluatePolygon extends Phaser.Scene {
 
         }, this);
 
+        //var PLAYER_NAMES = ['Louis'];
+        //this.input.keyboard.on('keydown_A', function (event)
+        //{
+        //    PLAYER_NAME = Phaser.Math.RND.pick(PLAYER_NAMES);
+        //    this.name_text.setText(PLAYER_NAME);
+        //    console.log(PLAYER_NAME)
+
+        //}, this);
+
         var textureManager = this.textures;
         var scene = this;
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
@@ -293,11 +328,9 @@ class EvaluatePolygon extends Phaser.Scene {
             var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
             stats.push(stat)
             localStorage.setItem(PLAYER_NAME, JSON.stringify(stats));
-            //console.log(stats);
             scene.score_text.setText((1000*score).toFixed(0));
         });
         this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
-
 
     }
 

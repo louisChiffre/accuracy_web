@@ -13,7 +13,7 @@ var REFERENCE_ORIGIN ={x:3,y:3}
 var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH};
 var STATS_ORIGIN = {x:LENGTH, y:REFERENCE_ORIGIN.y};
 var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:LENGTH+BORDER};
-var PLAYER_NAME = 'Laurent Test';
+var PLAYER_NAME = 'Louis';
 
 
 var TEXT_HEIGHT = 15
@@ -26,6 +26,9 @@ var config = {
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
     pixelArt:true,
+    audio: {
+        disableWebAudio: true
+    }
     //scene: [Square, EvaluateSquare, Circle]
 };
 
@@ -98,6 +101,4 @@ function calc_score(textureManager, image)
 }
 
 //var name = prompt('Enter your name');
-//PLAYER_NAME = name;
-//this.name_text.setText(PLAYER_NAME);
-
+PLAYER_NAME = 'Laurent';
