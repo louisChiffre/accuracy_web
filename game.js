@@ -51,7 +51,8 @@ var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZE
 var code2game = {}
 function add_polygon_game(config, index)
 {
-    game.scene.add(config.name, Polygon, true, config);
+
+    game.scene.add(config.name, Polygon, index==0, config);
     game.scene.add(config.eval_name, EvaluatePolygon, false, config);
     code2game[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
@@ -101,4 +102,4 @@ function calc_score(textureManager, image)
 }
 
 //var name = prompt('Enter your name');
-PLAYER_NAME = 'Laurent';
+PLAYER_NAME = 'Louis';
