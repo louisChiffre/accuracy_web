@@ -53,17 +53,19 @@ function get_player_relative_position(pointer)
 var blob_config = {
     'name': 'Blob',
     'eval_name': 'EvalBlob',
-    'make_reference': function(){
-        var points = make_random_polygon(LENGTH);
-        return new Phaser.Geom.Polygon(points);
-    },
-    'make_player': function() {
-        var points = [0,0,100,0];
-        return {
-            polygon:new Phaser.Geom.Polygon(points),
+    'make_data': function()
+    {
+        var reference = new Phaser.Geom.Polygon(make_random_polygon(LENGTH));
+        var player = {
+            polygon:new Phaser.Geom.Polygon([0,0,100,0]),
             square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
             pointer: 1,
             done: false};
+
+        return {
+            'reference' :reference,
+            'player' :player
+        };
     },
     'draw_reference': function(data)
     {
@@ -369,10 +371,19 @@ class Polygon extends Phaser.Scene {
     create(config)
     {
         graphics = this.add.graphics();
-        this.data_ = {
-            'reference' :config.make_reference() ,
-            'player' :config.make_player(),
-        };
+
+        if ('make_data' in config)
+        {
+            this.data_ = config.make_data();
+        }
+        else
+        {
+            this.data_ = {
+                'reference' :config.make_reference() ,
+                'player' :config.make_player(),
+            };
+        }
+
         this.data_.config = config;
         this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
 
