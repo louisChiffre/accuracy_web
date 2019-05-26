@@ -20,6 +20,19 @@ function make_random_base(H)
         H/2, 0]  //top right corner]
     return points;
 }
+var chunk = (arr, size) =>
+  Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+    arr.slice(i * size, i * size + size)
+  );
+
+
+function rotate_points(points, n_rotation)
+{
+    var angle = Phaser.Math.PI2/4 * n_rotation
+    return chunk(points,2).map(
+        x=>Phaser.Math.RotateAround(new Phaser.Geom.Point(x[0],x[1]),LENGTH/2,LENGTH/2,angle)).map(x=> [x.x,x.y]).reduce((a, b) => [...a, ...b])
+}
+
 function make_random_polygon(LENGTH)
 {
     var H = Phaser.Math.Between(300, 0.9*LENGTH); 
@@ -42,7 +55,8 @@ function make_random_polygon(LENGTH)
     }
     points.push(points[0]);
     points.push(points[1]);
-    return points
+    return points;
+
 }
 
 function get_player_relative_position(pointer)
@@ -50,14 +64,17 @@ function get_player_relative_position(pointer)
     return new Phaser.Geom.Point(pointer.x - PLAYER_ORIGIN.x, pointer.y - PLAYER_ORIGIN.y);
 }
 
+
+
 var blob_config = {
     'name': 'Blob',
     'eval_name': 'EvalBlob',
     'make_data': function()
     {
-        var reference = new Phaser.Geom.Polygon(make_random_polygon(LENGTH));
+        var n_rotation = Phaser.Math.Between(0,3);
+        var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
         var player = {
-            polygon:new Phaser.Geom.Polygon([0,0,100,0]),
+            polygon:new Phaser.Geom.Polygon(rotate_points([0,0,100,0],n_rotation)),
             square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
             pointer: 1,
             done: false};
@@ -73,7 +90,6 @@ var blob_config = {
         graphics.strokeRectShape(data.player.square);
         graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
         graphics.strokePoints(data.reference.points);
-        //graphics.fillPoints(data.reference.points);
     },
     'draw_player': function(data)
     {
@@ -81,15 +97,6 @@ var blob_config = {
         graphics.strokeRectShape(data.player.square);
         graphics.lineStyle(1, RED, 1.0);
         graphics.strokePoints(data.player.polygon.points);
-        if(data.player.done)
-        {
-            //for(var circle of data.player.circles)
-            //{
-            //    console.log(circle);
-            //    graphics.strokeCircleShape(circle);
-            //}
-
-        }
     },
 
     'draw_evaluation': function(data)
