@@ -225,7 +225,13 @@ var circle_config = {
         if (cursors.left.isDown)  data.player.radius += -SPEED
         if (cursors.right.isDown) data.player.radius +=  SPEED
 
-    }
+    },
+    'pointermove': function(pointer, data)
+    {
+        var position =get_player_relative_position(pointer);
+        var distance = Phaser.Math.Distance.Between(position.x, position.y, LENGTH/2.0, LENGTH/2.0); 
+        data.player.radius = distance;
+    },
 
 };
 
@@ -244,6 +250,7 @@ var square_config = {
         graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
         graphics.strokeRectShape(data.reference);
     },
+
     'draw_player': function(data)
     {
         graphics.lineStyle(1, RED, 1.0);
@@ -257,6 +264,7 @@ var square_config = {
         graphics.fillStyle(RED, 0.3);
         graphics.fillRectShape(data.player);
     },
+
     'process_cursors_input': function(cursors, data)
     {
         if (cursors.shift.isDown)
@@ -268,21 +276,18 @@ var square_config = {
         if (cursors.left.isDown)  data.player.width += -SPEED
         if (cursors.right.isDown) data.player.width +=  SPEED
 
-    }
+    },
+
+    'pointermove': function(pointer, data)
+    {
+        var position =get_player_relative_position(pointer);
+        data.player.height = position.y
+        data.player.width = position.x
+
+    },
+
 
 };
-
-var markers = [
-    { name: 'alien death', start: 1, duration: 1.0, config: {} },
-    { name: 'boss hit', start: 3, duration: 0.5, config: {} },
-    { name: 'escape', start: 4, duration: 3.2, config: {} },
-    { name: 'meow', start: 8, duration: 0.5, config: {} },
-    { name: 'numkey', start: 9, duration: 0.1, config: {} },
-    { name: 'ping', start: 10, duration: 1.0, config: {} },
-    { name: 'death', start: 12, duration: 4.2, config: {} },
-    { name: 'shot', start: 17, duration: 1.0, config: {} },
-    { name: 'squit', start: 19, duration: 0.3, config: {} }
-];
 
 
 
@@ -310,7 +315,7 @@ class EvaluatePolygon extends Phaser.Scene {
         this.data_=data
         this.score_text = this.add.text(STATS_ORIGIN.x, STATS_ORIGIN.y, '').setFontSize(64).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
         this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontFamily('Arial').setPadding({ right: 16 });
-        this.input.keyboard.on('keydown_ENTER', function (event)
+        this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(this.data_.config.name);
 
@@ -410,7 +415,7 @@ class Polygon extends Phaser.Scene {
         }, this);
         
 
-        this.input.keyboard.on('keydown_ENTER', function (event)
+        this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(this.data_.config.eval_name, this.data_);
 
