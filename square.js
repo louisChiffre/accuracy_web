@@ -11,6 +11,7 @@ function make_random_circle(LENGTH)
 {
     return new Phaser.Geom.Circle(LENGTH*0.5, LENGTH*0.5, Phaser.Math.Between(50, 0.4*LENGTH));
 }
+
 function make_random_base(H)
 {
     var points =[ 
@@ -291,7 +292,7 @@ var square_config = {
 
 
 
-class EvaluatePolygon extends Phaser.Scene {
+class EvaluateScene extends Phaser.Scene {
     constructor (config)
     {
         super(config);
@@ -309,12 +310,22 @@ class EvaluatePolygon extends Phaser.Scene {
     }
 
 
-    create (data)
+    create(data)
     {
         graphics = this.add.graphics();
-        this.data_=data
-        this.score_text = this.add.text(STATS_ORIGIN.x, STATS_ORIGIN.y, '').setFontSize(64).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
-        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontFamily('Arial').setPadding({ right: 16 });
+        this.data_=data;
+        this.score_text = this.add.text(
+            STATS_ORIGIN.x, STATS_ORIGIN.y, '')
+            .setFontSize(64)
+            .setFontStyle('bold')
+            .setFontFamily(FONT_FAMILY)
+        this.name_text = this.add.text(
+            PLAYER_NAME_ORIGIN.x, 
+            PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontFamily(FONT_FAMILY)
+        this.stats_text = this.add.text(
+            STATS_ORIGIN.x, 
+            STATS_ORIGIN.y, '').setFontSize(16).setFontFamily(FONT_FAMILY)
+
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(this.data_.config.name);
@@ -338,10 +349,14 @@ class EvaluatePolygon extends Phaser.Scene {
             var stat  = {
                 time: Date.now(),
                 name:scene.data_.config.name,
-                score:score};
-            var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
-            stats.push(stat)
-            localStorage.setItem(PLAYER_NAME, JSON.stringify(stats));
+                score:score,
+                session_id:SESSION_ID
+                };
+            var stats = save_stats(stat);
+            console.time('stats calculation');
+            var historical_stats = calculate_historical_performance(stats);
+            console.timeEnd('stats calculation');
+
             scene.score_text.setText((1000*score).toFixed(0));
         });
         this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
@@ -397,8 +412,16 @@ class Polygon extends Phaser.Scene {
         }
 
         this.data_.config = config;
-        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontStyle('bold').setFontFamily('Arial').setPadding({ right: 16 });
+        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: 16 });
 
+        // remove duplication with evaluate
+        this.stats_text = this.add.text(
+            STATS_ORIGIN.x, 
+            STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
+        var stats = read_stats();
+        var historical_stats = calculate_historical_performance(stats);
+        var stat_strings = make_stats_strings(historical_stats);
+        this.stats_text.setText(stat_strings);
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', function (event) {
