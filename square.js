@@ -328,7 +328,8 @@ class EvaluateScene extends Phaser.Scene {
 
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start(this.data_.config.name);
+            var next_scene = Phaser.Math.RND.pick(configs);
+            this.scene.start(next_scene.name);
 
         }, this);
 

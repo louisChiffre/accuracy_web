@@ -115,7 +115,7 @@ function make_stats_strings(historical_stats)
     var rows  = GAME_NAMES;
     var funcs = {
         'size': x=> x.toFixed(0),
-        'median': x=>(100*x).toFixed(0)
+        'median': x=>isNaN(x)?'':(100*x).toFixed(0)
 
     }
     var row_header_size = Math.max(...GAME_NAMES.map(x=>x.length)) + 2;
