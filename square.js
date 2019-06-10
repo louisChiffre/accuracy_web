@@ -45,7 +45,7 @@ function make_random_polygon(LENGTH)
         x[i] = Phaser.Math.Between(0.5*H, H);
         y[i] = Phaser.Math.Between(0.25*H, 0.75*H);
     }
-    console.log(y)
+    //console.log(y)
     y.sort((a, b) => a - b)
     console.log(y)
     for (i = 0; i < x.length; i++) 
@@ -328,8 +328,8 @@ class EvaluateScene extends Phaser.Scene {
 
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            var next_scene = Phaser.Math.RND.pick(configs);
-            this.scene.start(next_scene.name);
+            this.scene.start(NEXT_SCENE_NAME);
+            update_session();
 
         }, this);
 
@@ -413,7 +413,8 @@ class Polygon extends Phaser.Scene {
         }
 
         this.data_.config = config;
-        this.name_text = this.add.text(PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: 16 });
+        this.name_text = this.add.text( PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, `${PLAYER_NAME}`)
+            .setFontSize(16).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: 16 });
 
         // remove duplication with evaluate
         this.stats_text = this.add.text(
@@ -422,14 +423,15 @@ class Polygon extends Phaser.Scene {
         var stats = read_stats();
         var historical_stats = calculate_historical_performance(stats);
         var stat_strings = make_stats_strings(historical_stats);
+        stat_strings.push(make_session_state_string())
         this.stats_text.setText(stat_strings);
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', function (event) {
             console.log(this.data_.config);
-            if(event.keyCode in code2game)
+            if(event.keyCode in CODE2GAME)
             {
-                this.scene.start(code2game[event.keyCode]);
+                this.scene.start(CODE2GAME[event.keyCode]);
 
             }
             if(event.key in this.data_.config.inputs)

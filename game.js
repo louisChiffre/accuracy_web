@@ -1,5 +1,5 @@
-const configs = [blob_config, circle_config, square_config];
-const GAME_NAMES  = configs.map(x=>x.name).concat(['All']);
+const CONFIGS = [blob_config, circle_config, square_config];
+const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var BORDER = 10;
 var WIDTH = 800;
@@ -21,9 +21,13 @@ var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
 var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:LENGTH+BORDER};
 var PLAYER_NAME = 'Louis';
 
+
 const make_session_id = ()=>Date.now()
 
-var SESSION_ID= make_session_id()//we use the time to identify the session
+var SESSION_ID;
+var NEXT_SCENE_NAME;
+var SCENE_NAMES;
+var SCENE_COUNT;
 
 
 var TEXT_HEIGHT = 15
@@ -90,11 +94,14 @@ function calculate_stats_summary(stats)
 
 const t2d = x => new Date(x.getFullYear(), x.getMonth(), x.getDate())
 const TODAY = t2d(new Date(Date.now()));
+var TIME_FILTERS; 
 
-var TIME_FILTERS = {
+function update_time_filters()
+{
+    TIME_FILTERS = {
         'session': x => x.session_id == SESSION_ID,
         'today': x => t2d(new Date(x.time)).getTime() == TODAY.getTime(),
-        'all': x => true,
+        'all': x => true,};
 }
 
 
@@ -151,17 +158,6 @@ const median = arr => {
   return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
 };
 
-var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
-var code2game = {}
-function add_polygon_game(config, index)
-{
-    var is_first = index==0;
-    game.scene.add(config.name, Polygon, is_first, config);
-    game.scene.add(config.eval_name, EvaluateScene, false, config);
-    code2game[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
-
-}
-configs.forEach(add_polygon_game)
 
 
 var SPEED = 1.0
@@ -205,5 +201,69 @@ function calc_score(textureManager, image)
     return score;
 }
 
+function create_random_scenes_sequence()
+{
+    var n_scene = 3;
+    var random_scenes = [];
+    function add(config)
+    {
+        for(i=0;i<n_scene;i++)
+        {
+            random_scenes.push(config.name)
+        }
+    }
+    CONFIGS.forEach(add)
+    SCENE_COUNT=random_scenes.length
+    return Phaser.Math.RND.shuffle(random_scenes)
+}
+
+function update_session()
+{
+    NEXT_SCENE_NAME = SCENE_NAMES.pop();
+    if(NEXT_SCENE_NAME==undefined)
+    {
+        console.log('session has ended');
+        initialize_session();
+    }
+
+}
+
+function initialize_session()
+{
+    SESSION_ID=make_session_id();
+    update_time_filters();
+    SCENE_NAMES = create_random_scenes_sequence();
+    update_session();
+}
+
+var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
+var CODE2GAME = {}
+
+function initialize_scenes()
+{
+    function add_polygon_game(config, index)
+    {
+        var is_first = config.name==NEXT_SCENE_NAME;
+        game.scene.add(config.name, Polygon, is_first, config);
+        //game.scene.add(config.name, Polygon, false, config);
+        game.scene.add(config.eval_name, EvaluateScene, false, config);
+        CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
+
+    }
+    CONFIGS.forEach(add_polygon_game)
+}
+
+function make_session_state_string()
+{
+    var remaining_scenes = SCENE_NAMES.length
+    var done_scenes = SCENE_COUNT - remaining_scenes -1;
+    return  `${done_scenes}/${SCENE_COUNT}`
+
+}
+
+
 //var name = prompt('Enter your name');
 PLAYER_NAME = 'Louis';
+initialize_session();
+initialize_scenes();
+
