@@ -18,13 +18,14 @@ var REFERENCE_ORIGIN ={x:3,y:3}
 var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH};
 var STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
 var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
-var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:LENGTH+BORDER};
+var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 var PLAYER_NAME = 'Louis';
 
 
 const make_session_id = ()=>Date.now()
 
 var SESSION_ID;
+var SESSION_IDS;
 var NEXT_SCENE_NAME;
 var SCENE_NAMES;
 var SCENE_COUNT;
@@ -56,7 +57,10 @@ var game = new Phaser.Game(config);
 
 function read_stats()
 {
-    return JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
+    console.time('retrieve stats');
+    var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
+    console.timeEnd('retrieve stats');
+    return stats;
 }
 
 function save_stats(stat)
@@ -98,10 +102,17 @@ var TIME_FILTERS;
 
 function update_time_filters()
 {
-    TIME_FILTERS = {
-        'session': x => x.session_id == SESSION_ID,
-        'today': x => t2d(new Date(x.time)).getTime() == TODAY.getTime(),
-        'all': x => true,};
+    stats = read_stats();
+    session_ids = stats.map(x=>x.session_id).sort();
+    TIME_FILTERS = {};
+    TIME_FILTERS['session'] = x => x.session_id == SESSION_ID
+    if (session_ids.length>0)
+    {
+        TIME_FILTERS['prev'] =  x => x.session_id == session_ids.slice(-1)[0]
+    }
+
+    TIME_FILTERS['today'] =  x => t2d(new Date(x.time)).getTime() == TODAY.getTime()
+    TIME_FILTERS['all'] = x => true
 }
 
 
@@ -196,7 +207,7 @@ function calc_score(textureManager, image)
     var intersection = M[intersection_key]||0;
     var union = only_ref + only_player + intersection;
     var score = intersection/union;
-    console.log(score)
+    //console.log(score)
     textureManager.remove('snap');
     return score;
 }
@@ -243,9 +254,8 @@ function initialize_scenes()
 {
     function add_polygon_game(config, index)
     {
-        var is_first = config.name==NEXT_SCENE_NAME;
-        game.scene.add(config.name, Polygon, is_first, config);
-        //game.scene.add(config.name, Polygon, false, config);
+        var should_start = config.name==NEXT_SCENE_NAME;
+        game.scene.add(config.name, Polygon, should_start, config);
         game.scene.add(config.eval_name, EvaluateScene, false, config);
         CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
@@ -256,14 +266,20 @@ function initialize_scenes()
 function make_session_state_string()
 {
     var remaining_scenes = SCENE_NAMES.length
-    var done_scenes = SCENE_COUNT - remaining_scenes -1;
+    var done_scenes = SCENE_COUNT - remaining_scenes;
     return  `${done_scenes}/${SCENE_COUNT}`
-
 }
 
+function make_status_string()
+{
+    var stats = read_stats();
+    var historical_stats = calculate_historical_performance(stats);
+    var stat_strings = make_stats_strings(historical_stats);
+    stat_strings.push(make_session_state_string())
+    return stat_strings;
+}
 
 //var name = prompt('Enter your name');
 PLAYER_NAME = 'Louis';
 initialize_session();
 initialize_scenes();
-

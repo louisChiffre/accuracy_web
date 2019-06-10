@@ -45,9 +45,7 @@ function make_random_polygon(LENGTH)
         x[i] = Phaser.Math.Between(0.5*H, H);
         y[i] = Phaser.Math.Between(0.25*H, 0.75*H);
     }
-    //console.log(y)
     y.sort((a, b) => a - b)
-    console.log(y)
     for (i = 0; i < x.length; i++) 
     {
         points.push(x[i]);
@@ -140,7 +138,7 @@ var blob_config = {
         if(data.player.done==false)
         {
             data.player.done = data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
-            console.log('are we done %s', data.player.done)
+            //console.log('are we done %s', data.player.done)
 
             if(data.player.done)
             {
@@ -315,7 +313,7 @@ class EvaluateScene extends Phaser.Scene {
         graphics = this.add.graphics();
         this.data_=data;
         this.score_text = this.add.text(
-            STATS_ORIGIN.x, STATS_ORIGIN.y, '')
+            SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
             .setFontSize(64)
             .setFontStyle('bold')
             .setFontFamily(FONT_FAMILY)
@@ -325,6 +323,7 @@ class EvaluateScene extends Phaser.Scene {
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, '').setFontSize(16).setFontFamily(FONT_FAMILY)
+        this.stats_text.setText(make_status_string());
 
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
@@ -420,11 +419,9 @@ class Polygon extends Phaser.Scene {
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
-        var stats = read_stats();
-        var historical_stats = calculate_historical_performance(stats);
-        var stat_strings = make_stats_strings(historical_stats);
-        stat_strings.push(make_session_state_string())
-        this.stats_text.setText(stat_strings);
+
+        this.stats_text.setText(make_status_string());
+
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
         this.input.keyboard.on('keydown', function (event) {
