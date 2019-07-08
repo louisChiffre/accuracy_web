@@ -96,6 +96,14 @@ function calculate_stats_summary(stats)
     return s;
 }
 
+function make_score_table(stats)
+{
+    debugger
+
+
+}
+
+
 const t2d = x => new Date(x.getFullYear(), x.getMonth(), x.getDate())
 const TODAY = t2d(new Date(Date.now()));
 var TIME_FILTERS; 
@@ -225,26 +233,28 @@ function create_random_scenes_sequence()
     }
     CONFIGS.forEach(add)
     SCENE_COUNT=random_scenes.length
+    random_scenes.push('End')
     return Phaser.Math.RND.shuffle(random_scenes)
 }
 
-function update_session()
+function update_next_session()
 {
     NEXT_SCENE_NAME = SCENE_NAMES.pop();
     if(NEXT_SCENE_NAME==undefined)
     {
         console.log('session has ended');
-        initialize_session();
+        initialize_session_sequences();
     }
 
 }
 
-function initialize_session()
+function initialize_session_sequences()
 {
     SESSION_ID=make_session_id();
     update_time_filters();
     SCENE_NAMES = create_random_scenes_sequence();
-    update_session();
+    console.log(SCENE_NAMES)
+    update_next_session();
 }
 
 var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
@@ -255,6 +265,7 @@ function initialize_scenes()
     function add_polygon_game(config, index)
     {
         var should_start = config.name==NEXT_SCENE_NAME;
+        should_start = false;
         game.scene.add(config.name, Polygon, should_start, config);
         game.scene.add(config.eval_name, EvaluateScene, false, config);
         CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
@@ -279,7 +290,67 @@ function make_status_string()
     return stat_strings;
 }
 
+class Start extends Phaser.Scene {
+    constructor(config) {
+        super(config);
+        var stats = read_stats();
+        var table = make_score_table(stats);
+    }
+
+    create(config)
+    {
+        graphics = this.add.graphics();
+        this.stats_text = this.add.text(
+            STATS_ORIGIN.x, 
+            STATS_ORIGIN.y, 'start').setFontSize(16).setFontFamily(FONT_FAMILY)
+         
+        this.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            this.scene.start(NEXT_SCENE_NAME);
+            update_next_session();
+
+        }, this);
+
+    }
+    update ()
+    {
+    }
+}
+class End extends Phaser.Scene {
+    constructor(config) {
+        super(config);
+    }
+
+    create(config)
+    {
+        graphics = this.add.graphics();
+        this.stats_text = this.add.text(
+            STATS_ORIGIN.x, 
+            STATS_ORIGIN.y, 'end').setFontSize(16).setFontFamily(FONT_FAMILY)
+         
+        this.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            this.scene.start(NEXT_SCENE_NAME);
+            update_next_session();
+
+        }, this);
+
+    }
+    update ()
+    {
+    }
+}
+
+
+
+
+
+
 //var name = prompt('Enter your name');
 PLAYER_NAME = 'Louis';
-initialize_session();
+
+// prepare the sequence of game
+initialize_session_sequences();
 initialize_scenes();
+game.scene.add('Start', Start, true, config);
+game.scene.add('End', End, false, config);

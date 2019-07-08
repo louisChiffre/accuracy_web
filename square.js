@@ -328,7 +328,7 @@ class EvaluateScene extends Phaser.Scene {
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(NEXT_SCENE_NAME);
-            update_session();
+            update_next_session();
 
         }, this);
 
