@@ -397,6 +397,7 @@ class Polygon extends Phaser.Scene {
 
     create(config)
     {
+        console.log('starting scene %s', config.name)
         graphics = this.add.graphics();
 
         if ('make_data' in config)
@@ -489,12 +490,8 @@ class Polygon extends Phaser.Scene {
 
         graphics.save();
         graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        //graphics.lineStyle(1, WHITE, 0.1);
-        //graphics.strokeRectShape(this.frame);
         this.data_.config.draw_player(this.data_);
         graphics.restore();
-
-        //this.score.setColor(WHITE);
 
     }
 }

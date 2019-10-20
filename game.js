@@ -21,6 +21,7 @@ var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
 var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 var PLAYER_NAME = 'Louis';
 
+var REPETITIONS_PER_GAME = 3;
 
 const make_session_id = ()=>Date.now()
 
@@ -53,13 +54,13 @@ var player;
 var reference;
 
 
-var game = new Phaser.Game(config);
+var GAME = new Phaser.Game(config);
 
 function read_stats()
 {
-    console.time('retrieve stats');
+    //console.time('retrieve stats');
     var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
-    console.timeEnd('retrieve stats');
+    //console.timeEnd('retrieve stats');
     return stats;
 }
 
@@ -98,7 +99,7 @@ function calculate_stats_summary(stats)
 
 function make_score_table(stats)
 {
-    debugger
+    //debugger
 
 
 }
@@ -222,24 +223,27 @@ function calc_score(textureManager, image)
 
 function create_random_scenes_sequence()
 {
-    var n_scene = 3;
     var random_scenes = [];
     function add(config)
     {
-        for(i=0;i<n_scene;i++)
+        for(i=0;i<REPETITIONS_PER_GAME;i++)
         {
             random_scenes.push(config.name)
         }
     }
     CONFIGS.forEach(add)
-    SCENE_COUNT=random_scenes.length
-    random_scenes.push('End')
-    return Phaser.Math.RND.shuffle(random_scenes)
+    SCENE_COUNT=random_scenes.length;
+    random_scenes = Phaser.Math.RND.shuffle(random_scenes);
+    //random_scenes.push('End');
+    return random_scenes;
 }
 
 function update_next_session()
 {
+    console.log('updating next session')
+    console.log(SCENE_NAMES)
     NEXT_SCENE_NAME = SCENE_NAMES.pop();
+    console.log(`next scene name is ${NEXT_SCENE_NAME}`);
     if(NEXT_SCENE_NAME==undefined)
     {
         console.log('session has ended');
@@ -250,10 +254,13 @@ function update_next_session()
 
 function initialize_session_sequences()
 {
+    console.log('initialize sequences');
     SESSION_ID=make_session_id();
+    console.log('session_id %s', SESSION_ID);
+    // create the time filters that will define the stats columns
     update_time_filters();
+    // create the sequence of scene names
     SCENE_NAMES = create_random_scenes_sequence();
-    console.log(SCENE_NAMES)
     update_next_session();
 }
 
@@ -266,8 +273,8 @@ function initialize_scenes()
     {
         var should_start = config.name==NEXT_SCENE_NAME;
         should_start = false;
-        game.scene.add(config.name, Polygon, should_start, config);
-        game.scene.add(config.eval_name, EvaluateScene, false, config);
+        GAME.scene.add(config.name, Polygon, should_start, config);
+        GAME.scene.add(config.eval_name, EvaluateScene, false, config);
         CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
     }
@@ -290,6 +297,7 @@ function make_status_string()
     return stat_strings;
 }
 
+// Starting scene
 class Start extends Phaser.Scene {
     constructor(config) {
         super(config);
@@ -302,12 +310,11 @@ class Start extends Phaser.Scene {
         graphics = this.add.graphics();
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, 'start').setFontSize(16).setFontFamily(FONT_FAMILY)
+            STATS_ORIGIN.y, 'PRESS SPACE TO START').setFontSize(16).setFontFamily(FONT_FAMILY)
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(NEXT_SCENE_NAME);
-            update_next_session();
 
         }, this);
 
@@ -316,6 +323,7 @@ class Start extends Phaser.Scene {
     {
     }
 }
+// ending scene
 class End extends Phaser.Scene {
     constructor(config) {
         super(config);
@@ -326,7 +334,7 @@ class End extends Phaser.Scene {
         graphics = this.add.graphics();
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, 'end').setFontSize(16).setFontFamily(FONT_FAMILY)
+            STATS_ORIGIN.y, 'WE ARE DONE').setFontSize(16).setFontFamily(FONT_FAMILY)
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
@@ -352,5 +360,5 @@ PLAYER_NAME = 'Louis';
 // prepare the sequence of game
 initialize_session_sequences();
 initialize_scenes();
-game.scene.add('Start', Start, true, config);
-game.scene.add('End', End, false, config);
+GAME.scene.add('Start', Start, true, config);
+GAME.scene.add('End', End, false, config);
