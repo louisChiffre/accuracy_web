@@ -85,26 +85,26 @@ var blob_config = {
     },
     'draw_reference': function(data)
     {
-        graphics.lineStyle(1, WHITE, 0.2);
-        graphics.strokeRectShape(data.player.square);
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokePoints(data.reference.points);
+        GRAPHICS.lineStyle(1, WHITE, 0.2);
+        GRAPHICS.strokeRectShape(data.player.square);
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokePoints(data.reference.points);
     },
     'draw_player': function(data)
     {
-        graphics.lineStyle(1, WHITE, 0.2);
-        graphics.strokeRectShape(data.player.square);
-        graphics.lineStyle(1, RED, 1.0);
-        graphics.strokePoints(data.player.polygon.points);
+        GRAPHICS.lineStyle(1, WHITE, 0.2);
+        GRAPHICS.strokeRectShape(data.player.square);
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokePoints(data.player.polygon.points);
     },
 
     'draw_evaluation': function(data)
     {
-        graphics.fillStyle(GREEN, 0.3);
-        graphics.fillPoints(data.reference.points);
+        GRAPHICS.fillStyle(GREEN, 0.3);
+        GRAPHICS.fillPoints(data.reference.points);
 
-        graphics.fillStyle(RED, 0.3);
-        graphics.fillPoints(data.player.polygon.points);
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillPoints(data.player.polygon.points);
     },
     'process_cursors_input': function(cursors, data)
     {
@@ -197,21 +197,21 @@ var circle_config = {
     },
     'draw_reference': function(data)
     {
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeCircleShape(data.reference);
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokeCircleShape(data.reference);
     },
     'draw_player': function(data)
     {
-        graphics.lineStyle(1, RED, 1.0);
-        graphics.strokeCircleShape(data.player);
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokeCircleShape(data.player);
     },
 
     'draw_evaluation': function(data)
     {
-        graphics.fillStyle(GREEN, 0.3);
-        graphics.fillCircleShape(data.reference);
-        graphics.fillStyle(RED, 0.3);
-        graphics.fillCircleShape(data.player);
+        GRAPHICS.fillStyle(GREEN, 0.3);
+        GRAPHICS.fillCircleShape(data.reference);
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillCircleShape(data.player);
     },
     'process_cursors_input': function(cursors, data)
     {
@@ -246,22 +246,22 @@ var square_config = {
     },
     'draw_reference': function(data)
     {
-        graphics.lineStyle(1, REFERENCE_COLOR, 1.0);
-        graphics.strokeRectShape(data.reference);
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokeRectShape(data.reference);
     },
 
     'draw_player': function(data)
     {
-        graphics.lineStyle(1, RED, 1.0);
-        graphics.strokeRectShape(data.player);
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokeRectShape(data.player);
     },
 
     'draw_evaluation': function(data)
     {
-        graphics.fillStyle(GREEN, 0.3);
-        graphics.fillRectShape(data.reference);
-        graphics.fillStyle(RED, 0.3);
-        graphics.fillRectShape(data.player);
+        GRAPHICS.fillStyle(GREEN, 0.3);
+        GRAPHICS.fillRectShape(data.reference);
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillRectShape(data.player);
     },
 
     'process_cursors_input': function(cursors, data)
@@ -310,7 +310,7 @@ class EvaluateScene extends Phaser.Scene {
 
     create(data)
     {
-        graphics = this.add.graphics();
+        GRAPHICS = this.add.graphics();
         this.data_=data;
         this.score_text = this.add.text(
             SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
@@ -365,25 +365,25 @@ class EvaluateScene extends Phaser.Scene {
 
     update()
     {
-        graphics.clear();
-        graphics.save();
-        graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        GRAPHICS.clear();
+        GRAPHICS.save();
+        GRAPHICS.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         this.data_.config.draw_evaluation(this.data_);
-        graphics.restore();
+        GRAPHICS.restore();
 
-        graphics.save();
-        graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.save();
+        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_reference(this.data_)
 
-        graphics.fillStyle(0x000000, 0.7);
-        graphics.fillRectShape(this.blinder);
+        GRAPHICS.fillStyle(0x000000, 0.7);
+        GRAPHICS.fillRectShape(this.blinder);
 
-        graphics.restore();
+        GRAPHICS.restore();
 
-        graphics.save();
-        graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.save();
+        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
-        graphics.restore();
+        GRAPHICS.restore();
 
     }
 
@@ -398,7 +398,7 @@ class Polygon extends Phaser.Scene {
     create(config)
     {
         console.log('starting scene %s', config.name)
-        graphics = this.add.graphics();
+        GRAPHICS = this.add.graphics();
 
         if ('make_data' in config)
         {
@@ -479,19 +479,19 @@ class Polygon extends Phaser.Scene {
     }
     update ()
     {
-        graphics.clear();
+        GRAPHICS.clear();
         this.data_.config.process_cursors_input(this.cursors, this.data_);
 
 
-        graphics.save();
-        graphics.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        GRAPHICS.save();
+        GRAPHICS.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         this.data_.config.draw_reference(this.data_)
-        graphics.restore();
+        GRAPHICS.restore();
 
-        graphics.save();
-        graphics.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.save();
+        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
-        graphics.restore();
+        GRAPHICS.restore();
 
     }
 }

@@ -49,7 +49,7 @@ var config = {
 
 var data;
 
-var graphics;
+var GRAPHICS;
 var player;
 var reference;
 
@@ -307,7 +307,7 @@ class Start extends Phaser.Scene {
 
     create(config)
     {
-        graphics = this.add.graphics();
+        GRAPHICS = this.add.graphics();
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, 'PRESS SPACE TO START').setFontSize(16).setFontFamily(FONT_FAMILY)
@@ -331,7 +331,7 @@ class End extends Phaser.Scene {
 
     create(config)
     {
-        graphics = this.add.graphics();
+        GRAPHICS = this.add.graphics();
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, 'WE ARE DONE').setFontSize(16).setFontFamily(FONT_FAMILY)
