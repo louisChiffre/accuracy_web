@@ -47,13 +47,7 @@ var config = {
     }
 };
 
-var data;
-
 var GRAPHICS;
-var player;
-var reference;
-
-
 var GAME = new Phaser.Game(config);
 
 function read_stats()
