@@ -63,6 +63,98 @@ function get_player_relative_position(pointer)
     return new Phaser.Geom.Point(pointer.x - PLAYER_ORIGIN.x, pointer.y - PLAYER_ORIGIN.y);
 }
 
+function draw_reference(data)
+{
+    GRAPHICS.lineStyle(1, WHITE, 0.2);
+    GRAPHICS.strokeRectShape(data.player.square);
+    GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+    GRAPHICS.strokePoints(data.reference.points);
+}
+
+function draw_player(data)
+{
+    GRAPHICS.lineStyle(1, WHITE, 0.2);
+    GRAPHICS.strokeRectShape(data.player.square);
+    GRAPHICS.lineStyle(1, RED, 1.0);
+    GRAPHICS.strokePoints(data.player.polygon.points);
+}
+
+ function draw_evaluation(data)
+{
+    GRAPHICS.fillStyle(GREEN, 0.3);
+    GRAPHICS.fillPoints(data.reference.points);
+
+    GRAPHICS.fillStyle(RED, 0.3);
+    GRAPHICS.fillPoints(data.player.polygon.points);
+}
+ function process_cursors_input(cursors, data)
+{
+
+}
+
+ function pointermove(pointer, data)
+{
+    if(data.player.done==false)
+    {
+        var position =get_player_relative_position(pointer);
+        var dist = Phaser.Math.Distance.Between(
+            position.x,
+            position.y,
+            data.player.polygon.points[0].x,
+            data.player.polygon.points[0].y,
+            );
+        if(dist < 20)
+        {
+            data.player.polygon.points[data.player.pointer] = data.player.polygon.points[0];
+        }
+        else
+        {
+            data.player.polygon.points[data.player.pointer] = get_player_relative_position(pointer);
+        }
+    }
+
+}
+ function pointerdown(pointer, data, scene)
+{
+    if(data.player.done==false)
+    {
+        data.player.done = data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
+        //console.log('are we done %s', data.player.done)
+
+        if(data.player.done)
+        {
+            data.player.polygon.points.push(data.player.polygon.points[0]);
+            data.player.pointer = 1 ;
+            data.player.done = true;
+            for(var point of data.player.polygon.points)
+            {
+                var circle_real =  scene.add.circle(point.x + PLAYER_ORIGIN.x, point.y+ PLAYER_ORIGIN.y, 10)
+                circle_real._point = point;
+                circle_real.setInteractive();
+                scene.input.setDraggable(circle_real);
+
+            }
+
+        } else
+        {
+            var position = get_player_relative_position(pointer);
+            data.player.polygon.points.push(position);
+            data.player.pointer = data.player.pointer + 1 ;
+        }
+    }
+
+
+
+}
+ function drag(pointer, gameObject, dragX, dragY)
+{
+    gameObject.x = dragX;
+    gameObject.y = dragY;
+    gameObject._point.x = dragX - PLAYER_ORIGIN.x;
+    gameObject._point.y = dragY - PLAYER_ORIGIN.y;
+
+}
+
 
 
 var blob_config = {
@@ -83,106 +175,42 @@ var blob_config = {
             'player' :player
         };
     },
-    'draw_reference': function(data)
+    'draw_reference': draw_reference ,
+    'draw_player': draw_player ,
+    'draw_evaluation': draw_evaluation,
+    'process_cursors_input': process_cursors_input ,
+    'pointermove': pointermove,
+    'pointerdown': pointerdown,
+    'drag': drag,
+    'inputs': {},
+}
+
+var free_config = {
+    'name': 'Free',
+    'eval_name': 'EvalFree',
+    'make_data': function()
     {
-        GRAPHICS.lineStyle(1, WHITE, 0.2);
-        GRAPHICS.strokeRectShape(data.player.square);
-        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
-        GRAPHICS.strokePoints(data.reference.points);
+        var n_rotation = Phaser.Math.Between(0,3);
+        var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
+        var player = {
+            polygon:new Phaser.Geom.Polygon(rotate_points([0,0,100,0],n_rotation)),
+            square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
+            pointer: 1,
+            done: false};
+
+        return {
+            'reference' :reference,
+            'player' :player
+        };
     },
-    'draw_player': function(data)
-    {
-        GRAPHICS.lineStyle(1, WHITE, 0.2);
-        GRAPHICS.strokeRectShape(data.player.square);
-        GRAPHICS.lineStyle(1, RED, 1.0);
-        GRAPHICS.strokePoints(data.player.polygon.points);
-    },
-
-    'draw_evaluation': function(data)
-    {
-        GRAPHICS.fillStyle(GREEN, 0.3);
-        GRAPHICS.fillPoints(data.reference.points);
-
-        GRAPHICS.fillStyle(RED, 0.3);
-        GRAPHICS.fillPoints(data.player.polygon.points);
-    },
-    'process_cursors_input': function(cursors, data)
-    {
-
-    },
-
-    'pointermove': function(pointer, data)
-    {
-        if(data.player.done==false)
-        {
-            var position =get_player_relative_position(pointer);
-            var dist = Phaser.Math.Distance.Between(
-                position.x,
-                position.y,
-                data.player.polygon.points[0].x,
-                data.player.polygon.points[0].y,
-                );
-            if(dist < 20)
-            {
-                data.player.polygon.points[data.player.pointer] = data.player.polygon.points[0];
-            }
-            else
-            {
-                data.player.polygon.points[data.player.pointer] = get_player_relative_position(pointer);
-            }
-        }
-
-    },
-    'pointerdown': function(pointer, data, scene)
-    {
-        if(data.player.done==false)
-        {
-            data.player.done = data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
-            //console.log('are we done %s', data.player.done)
-
-            if(data.player.done)
-            {
-                data.player.polygon.points.push(data.player.polygon.points[0]);
-                data.player.pointer = 1 ;
-                data.player.done = true;
-                for(var point of data.player.polygon.points)
-                {
-                    var circle_real =  scene.add.circle(point.x + PLAYER_ORIGIN.x, point.y+ PLAYER_ORIGIN.y, 10)
-                    circle_real._point = point;
-                    circle_real.setInteractive();
-                    scene.input.setDraggable(circle_real);
-
-                }
-
-            } else
-            {
-                var position = get_player_relative_position(pointer);
-                data.player.polygon.points.push(position);
-                data.player.pointer = data.player.pointer + 1 ;
-            }
-        }
-
-
-
-    },
-    'drag': function(pointer, gameObject, dragX, dragY)
-    {
-        gameObject.x = dragX;
-        gameObject.y = dragY;
-        gameObject._point.x = dragX - PLAYER_ORIGIN.x;
-        gameObject._point.y = dragY - PLAYER_ORIGIN.y;
-
-    },
-
-
-    'inputs': {
-        'Tab': function(data) {
-            console.log('TAB')
-            data.player.pointer=(data.player.pointer+1)%data.player.polygon.points.length;
-        }
-    }
-
-
+    'draw_reference': draw_reference ,
+    'draw_player': draw_player ,
+    'draw_evaluation': draw_evaluation,
+    'process_cursors_input': process_cursors_input ,
+    'pointermove': pointermove,
+    'pointerdown': pointerdown,
+    'drag': drag,
+    'inputs': {},
 }
 
 var circle_config = {
@@ -390,7 +418,7 @@ class EvaluateScene extends Phaser.Scene {
 }
 
 
-class Polygon extends Phaser.Scene {
+class InputScene extends Phaser.Scene {
     constructor(config) {
         super(config);
     }
