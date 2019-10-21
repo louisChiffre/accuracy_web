@@ -267,7 +267,7 @@ function initialize_scenes()
     {
         var should_start = config.name==NEXT_SCENE_NAME;
         should_start = false;
-        GAME.scene.add(config.name, Polygon, should_start, config);
+        GAME.scene.add(config.name, InputScene, should_start, config);
         GAME.scene.add(config.eval_name, EvaluateScene, false, config);
         CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
 
@@ -299,8 +299,18 @@ class Start extends Phaser.Scene {
         var table = make_score_table(stats);
     }
 
+    preload()
+    {
+        console.log('preloading')
+        //this.load.audio('init', 'assets/snd/init.wav');
+        //this.load.audio('init', 'assets/fx_mixdown.ogg')
+        //console.log('done')
+    }
+
     create(config)
     {
+        //var music = this.sound.add('init');
+        //music.play()
         GRAPHICS = this.add.graphics();
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
