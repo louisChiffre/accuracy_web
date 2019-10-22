@@ -75,8 +75,11 @@ function draw_player(data)
 {
     GRAPHICS.lineStyle(1, WHITE, 0.2);
     GRAPHICS.strokeRectShape(data.player.square);
-    GRAPHICS.lineStyle(1, RED, 1.0);
-    GRAPHICS.strokePoints(data.player.polygon.points);
+    if(has_point(data))
+    {
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokePoints(data.player.polygon.points);
+    }
 }
 
  function draw_evaluation(data)
@@ -87,14 +90,31 @@ function draw_player(data)
     GRAPHICS.fillStyle(RED, 0.3);
     GRAPHICS.fillPoints(data.player.polygon.points);
 }
- function process_cursors_input(cursors, data)
+
+function process_cursors_input(cursors, data)
 {
+    // keyboard arrow key callback
 
 }
 
- function pointermove(pointer, data)
+function has_point(data)
 {
-    if(data.player.done==false)
+    return data.player.polygon.points.length > 0
+}
+
+function is_polygon_closed(data)
+{
+    if (has_point(data))
+    {
+        return data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
+    }
+    return false
+
+}
+
+function pointermove(pointer, data)
+{
+    if( (data.player.done==false) & has_point(data) )
     {
         var position =get_player_relative_position(pointer);
         var dist = Phaser.Math.Distance.Between(
@@ -114,36 +134,39 @@ function draw_player(data)
     }
 
 }
- function pointerdown(pointer, data, scene)
+
+function pointerdown(pointer, data, scene)
 {
-    if(data.player.done==false)
+    if (pointer.buttons==1) //4 is for the middle button
     {
-        data.player.done = data.player.polygon.points[data.player.pointer] == data.player.polygon.points[0];
-        //console.log('are we done %s', data.player.done)
-
-        if(data.player.done)
+        //check if we didnt closed the polygon
+        if(data.player.done==false)
         {
-            data.player.polygon.points.push(data.player.polygon.points[0]);
-            data.player.pointer = 1 ;
-            data.player.done = true;
-            for(var point of data.player.polygon.points)
+            data.player.done = is_polygon_closed(data)
+
+            if(data.player.done)
             {
-                var circle_real =  scene.add.circle(point.x + PLAYER_ORIGIN.x, point.y+ PLAYER_ORIGIN.y, 10)
-                circle_real._point = point;
-                circle_real.setInteractive();
-                scene.input.setDraggable(circle_real);
+                data.player.polygon.points.push(data.player.polygon.points[0]);
+                data.player.pointer = 1 ;
+                data.player.done = true;
+                // we make the necessary to be able to edit the points
+                for(var point of data.player.polygon.points)
+                {
+                    var circle_real =  scene.add.circle(point.x + PLAYER_ORIGIN.x, point.y+ PLAYER_ORIGIN.y, 10)
+                    circle_real._point = point;
+                    circle_real.setInteractive();
+                    scene.input.setDraggable(circle_real);
 
+                }
+
+            } else
+            {
+                var position = get_player_relative_position(pointer);
+                data.player.polygon.points.push(position);
+                data.player.pointer = data.player.pointer + 1 ;
             }
-
-        } else
-        {
-            var position = get_player_relative_position(pointer);
-            data.player.polygon.points.push(position);
-            data.player.pointer = data.player.pointer + 1 ;
         }
     }
-
-
 
 }
  function drag(pointer, gameObject, dragX, dragY)
@@ -193,9 +216,9 @@ var free_config = {
         var n_rotation = Phaser.Math.Between(0,3);
         var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
         var player = {
-            polygon:new Phaser.Geom.Polygon(rotate_points([0,0,100,0],n_rotation)),
+            polygon:new Phaser.Geom.Polygon([]),
             square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
-            pointer: 1,
+            pointer: 0,
             done: false};
 
         return {

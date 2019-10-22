@@ -1,4 +1,4 @@
-const CONFIGS = [blob_config, circle_config, square_config, free_config];
+const CONFIGS = [free_config,blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var BORDER = 10;
@@ -77,6 +77,7 @@ function calculate_stats_summary(stats)
     //we group the stat on each bucket
     m = {};
     GAME_NAMES.forEach(x=>m[x] = []);
+    //stats = stats.filter(x=> GAME_NAMES.includes(x.name ));
     stats.forEach(x=>m[x.name].push(x));
     m[GAME_NAMES[GAME_NAMES.length-1]]=stats;
 
@@ -366,3 +367,4 @@ initialize_session_sequences();
 initialize_scenes();
 GAME.scene.add('Start', Start, true, config);
 GAME.scene.add('End', End, false, config);
+//GAME.canvas.oncontextmenu = (e) => e.preventDefault()
