@@ -12,6 +12,7 @@ var GREEN=0x00FF00;
 var FONT_FAMILY = 'monospace';
 
 
+// roughly the size of a panel
 LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 
 var REFERENCE_ORIGIN ={x:3,y:3}
@@ -268,6 +269,8 @@ function initialize_scenes()
     {
         var should_start = config.name==NEXT_SCENE_NAME;
         should_start = false;
+        console.log('adding scene with config')
+        console.log(config)
         GAME.scene.add(config.name, InputScene, should_start, config);
         GAME.scene.add(config.eval_name, EvaluateScene, false, config);
         CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;

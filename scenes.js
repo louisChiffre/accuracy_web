@@ -21,22 +21,48 @@ function make_random_base(H)
         H/2, 0]  //top right corner]
     return points;
 }
-var chunk = (arr, size) =>
-  Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
-    arr.slice(i * size, i * size + size)
-  );
 
 
 function rotate_points(points, n_rotation)
 {
+    var chunk = (arr, size) =>
+      Array.from({ length: Math.ceil(arr.length / size) }, (v, i) =>
+        arr.slice(i * size, i * size + size)
+      );
+
     var angle = Phaser.Math.PI2/4 * n_rotation
     return chunk(points,2).map(
         x=>Phaser.Math.RotateAround(new Phaser.Geom.Point(x[0],x[1]),LENGTH/2,LENGTH/2,angle)).map(x=> [x.x,x.y]).reduce((a, b) => [...a, ...b])
 }
 
-function make_random_polygon(LENGTH)
+
+function make_random_polygon(length)
 {
-    var H = Phaser.Math.Between(300, 0.9*LENGTH); 
+    var H = Phaser.Math.Between(0.75*length, 0.9*length); 
+    var points = make_random_base(H);
+    var n_points = 3
+    var x = new Array(n_points);
+    var y = new Array(n_points);
+    for (i = 0; i < x.length; i++) { 
+        x[i] = Phaser.Math.Between(0.5*H, H);
+        y[i] = Phaser.Math.Between(0.25*H, 0.75*H);
+    }
+    y.sort((a, b) => a - b)
+    for (i = 0; i < x.length; i++) 
+    {
+        points.push(x[i]);
+        points.push(y[i]);
+
+    }
+    points.push(points[0]);
+    points.push(points[1]);
+    return points;
+
+}
+function make_random_shape()
+{
+    var length=LENGTH;
+    var H = Phaser.Math.Between(0.75*length, 0.9*length); 
     var points = make_random_base(H);
     var n_points = 3
     var x = new Array(n_points);
@@ -183,7 +209,7 @@ function pointerdown(pointer, data, scene)
 var blob_config = {
     'name': 'Blob',
     'eval_name': 'EvalBlob',
-    'make_data': function()
+    'make_data': function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
         var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
@@ -211,10 +237,10 @@ var blob_config = {
 var free_config = {
     'name': 'Free',
     'eval_name': 'EvalFree',
-    'make_data': function()
+    'make_data': function(cache)
     {
-        var n_rotation = Phaser.Math.Between(0,3);
-        var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
+        var points = cache.json.get('example').points;
+        var reference = new Phaser.Geom.Polygon(points);
         var player = {
             polygon:new Phaser.Geom.Polygon([]),
             square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
@@ -234,6 +260,7 @@ var free_config = {
     'pointerdown': pointerdown,
     'drag': drag,
     'inputs': {},
+    'filepack': 'assets/pack_free',
 }
 
 var circle_config = {
@@ -445,6 +472,14 @@ class InputScene extends Phaser.Scene {
     constructor(config) {
         super(config);
     }
+    preload()
+    {
+        var config =this.scene.settings.data
+        if ('filepack' in config)
+        {
+            this.load.pack(config.filepack)
+        }
+    }
 
     create(config)
     {
@@ -453,7 +488,7 @@ class InputScene extends Phaser.Scene {
 
         if ('make_data' in config)
         {
-            this.data_ = config.make_data();
+            this.data_ = config.make_data(this.cache);
         }
         else
         {

@@ -1,0 +1,11 @@
+{ 
+    "z": {
+        "files": [
+            {
+                "type": "json",
+                "key": "example",
+                "url": "assets/json/random/example.json"
+            }
+        ]
+    }
+}
