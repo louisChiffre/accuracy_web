@@ -405,8 +405,7 @@ class EvaluateScene extends Phaser.Scene {
 
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start(NEXT_SCENE_NAME);
-            update_next_session();
+            this.scene.start(SESSION_MANAGER.update_next_scene_name());
 
         }, this);
 
@@ -428,7 +427,7 @@ class EvaluateScene extends Phaser.Scene {
                 time: Date.now(),
                 name:scene.data_.config.name,
                 score:score,
-                session_id:SESSION_ID
+                session_id:SESSION_MANAGER.session_id
                 };
             var stats = save_stats(stat);
             console.time('stats calculation');

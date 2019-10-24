@@ -22,16 +22,8 @@ var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
 var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 var PLAYER_NAME = 'Louis';
 
-var REPETITIONS_PER_GAME = 3;
 
 const make_session_id = ()=>Date.now()
-
-var SESSION_ID;
-var SESSION_IDS;
-var NEXT_SCENE_NAME;
-var SCENE_NAMES;
-var SCENE_COUNT;
-
 
 var TEXT_HEIGHT = 15
 
@@ -50,6 +42,76 @@ var config = {
 
 var GRAPHICS;
 var GAME = new Phaser.Game(config);
+
+class SessionManager
+{
+    constructor() 
+    {
+        console.log('constructing session manager');
+        // prepare the sequence of game
+        this.initialize_session_sequences();
+    }
+
+    update_next_scene_name()
+    {
+        var next = this._next_scene_name;
+        this.update_next_session()
+        return next;
+    }
+
+    next_scene_name()
+    {
+        return this._next_scene_name;
+    }
+
+    update_next_session()
+    {
+        console.log('updating next session')
+        this._next_scene_name = this._scene_names.pop();
+        console.log(`next scene name is ${this._next_scene_name}`);
+        if(this._next_scene_name==undefined)
+        {
+            console.log('session has ended');
+            this.initialize_session_sequences();
+        }
+
+    }
+
+    get remaining_scenes()
+    {
+        return this._scene_names.length
+
+    }
+
+    get session_state_string()
+    {
+        var done_scenes = this._scene_count - this.remaining_scenes;
+        return  `${done_scenes}/${this._scene_count}`
+    }
+
+    
+    get session_id()
+    {
+        return this._session_id
+    }
+
+
+    initialize_session_sequences()
+    {
+        console.log('initialize sequences');
+        this._session_id =make_session_id();
+        console.log('session_id %s', this._session_id);
+        // create the time filters that will define the stats columns
+        update_time_filters(this._session_id);
+        // create the sequence of scene names
+        this._scene_names = create_random_scenes_sequence();
+        this._scene_count=this._scene_names.length;
+        this.update_next_session();
+    }
+
+
+}
+
 
 function read_stats()
 {
@@ -105,12 +167,12 @@ const t2d = x => new Date(x.getFullYear(), x.getMonth(), x.getDate())
 const TODAY = t2d(new Date(Date.now()));
 var TIME_FILTERS; 
 
-function update_time_filters()
+function update_time_filters(current_session_id)
 {
     stats = read_stats();
     session_ids = stats.map(x=>x.session_id).sort();
     TIME_FILTERS = {};
-    TIME_FILTERS['session'] = x => x.session_id == SESSION_ID
+    TIME_FILTERS['session'] = x => x.session_id == current_session_id
     if (session_ids.length>0)
     {
         TIME_FILTERS['prev'] =  x => x.session_id == session_ids.slice(-1)[0]
@@ -219,46 +281,20 @@ function calc_score(textureManager, image)
 
 function create_random_scenes_sequence()
 {
+    var repetitions_per_game = 1;
     var random_scenes = [];
     function add(config)
     {
-        for(i=0;i<REPETITIONS_PER_GAME;i++)
+        for(i=0;i<repetitions_per_game;i++)
         {
             random_scenes.push(config.name)
         }
     }
     CONFIGS.forEach(add)
-    SCENE_COUNT=random_scenes.length;
     random_scenes = Phaser.Math.RND.shuffle(random_scenes);
-    //random_scenes.push('End');
     return random_scenes;
 }
 
-function update_next_session()
-{
-    console.log('updating next session')
-    console.log(SCENE_NAMES)
-    NEXT_SCENE_NAME = SCENE_NAMES.pop();
-    console.log(`next scene name is ${NEXT_SCENE_NAME}`);
-    if(NEXT_SCENE_NAME==undefined)
-    {
-        console.log('session has ended');
-        initialize_session_sequences();
-    }
-
-}
-
-function initialize_session_sequences()
-{
-    console.log('initialize sequences');
-    SESSION_ID=make_session_id();
-    console.log('session_id %s', SESSION_ID);
-    // create the time filters that will define the stats columns
-    update_time_filters();
-    // create the sequence of scene names
-    SCENE_NAMES = create_random_scenes_sequence();
-    update_next_session();
-}
 
 var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
 var CODE2GAME = {}
@@ -267,7 +303,7 @@ function initialize_scenes()
 {
     function add_polygon_game(config, index)
     {
-        var should_start = config.name==NEXT_SCENE_NAME;
+        var should_start = config.name==SESSION_MANAGER.next_scene_name();
         should_start = false;
         console.log('adding scene with config')
         console.log(config)
@@ -279,19 +315,13 @@ function initialize_scenes()
     CONFIGS.forEach(add_polygon_game)
 }
 
-function make_session_state_string()
-{
-    var remaining_scenes = SCENE_NAMES.length
-    var done_scenes = SCENE_COUNT - remaining_scenes;
-    return  `${done_scenes}/${SCENE_COUNT}`
-}
 
 function make_status_string()
 {
     var stats = read_stats();
     var historical_stats = calculate_historical_performance(stats);
     var stat_strings = make_stats_strings(historical_stats);
-    stat_strings.push(make_session_state_string())
+    stat_strings.push(SESSION_MANAGER.session_state_string)
     return stat_strings;
 }
 
@@ -322,7 +352,7 @@ class Start extends Phaser.Scene {
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start(NEXT_SCENE_NAME);
+            this.scene.start(SESSION_MANAGER.next_scene_name());
 
         }, this);
 
@@ -346,8 +376,7 @@ class End extends Phaser.Scene {
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start(NEXT_SCENE_NAME);
-            update_next_session();
+            this.scene.start(SESSION_MANAGER.update_next_scene_name());
 
         }, this);
 
@@ -357,17 +386,14 @@ class End extends Phaser.Scene {
     }
 }
 
-
-
-
-
-
 //var name = prompt('Enter your name');
 PLAYER_NAME = 'Louis';
 
-// prepare the sequence of game
-initialize_session_sequences();
-initialize_scenes();
+var SESSION_MANAGER = new SessionManager();
+// instantiate all scenes
+initialize_scenes(); //perhaps this should be put in session manager
+
+
 GAME.scene.add('Start', Start, true, config);
 GAME.scene.add('End', End, false, config);
 //GAME.canvas.oncontextmenu = (e) => e.preventDefault()
