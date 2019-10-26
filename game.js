@@ -1,6 +1,10 @@
 const CONFIGS = [free_config,blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
+var FIREBASE_APP;
+var FIREBASE_USER;
+
+
 var BORDER = 10;
 var WIDTH = 800;
 var HEIGHT = 800;
@@ -13,7 +17,7 @@ var FONT_FAMILY = 'monospace';
 
 
 // roughly the size of a panel
-LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
+var LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 
 var REFERENCE_ORIGIN ={x:3,y:3}
 var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH};
@@ -115,9 +119,9 @@ class SessionManager
 
 function read_stats()
 {
-    //console.time('retrieve stats');
+    console.time('retrieve stats');
     var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
-    //console.timeEnd('retrieve stats');
+    console.timeEnd('retrieve stats');
     return stats;
 }
 
@@ -292,6 +296,7 @@ function create_random_scenes_sequence()
     }
     CONFIGS.forEach(add)
     random_scenes = Phaser.Math.RND.shuffle(random_scenes);
+    console.log('random scenes ', random_scenes)
     return random_scenes;
 }
 
@@ -343,18 +348,54 @@ class Start extends Phaser.Scene {
 
     create(config)
     {
-        //var music = this.sound.add('init');
-        //music.play()
         GRAPHICS = this.add.graphics();
-        this.stats_text = this.add.text(
+        var stats_text = this.add.text(
             STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, 'PRESS SPACE TO START').setFontSize(16).setFontFamily(FONT_FAMILY)
-         
-        this.input.keyboard.on('keydown_SPACE', function (event)
-        {
-            this.scene.start(SESSION_MANAGER.next_scene_name());
+            STATS_ORIGIN.y, 'LOGGING IN ...').setFontSize(16).setFontFamily(FONT_FAMILY)
 
-        }, this);
+        FIREBASE_APP = firebase.initializeApp(firebase_config);
+        var scene = this;
+
+        FIREBASE_APP.auth().onAuthStateChanged(function (user) {
+            if (user) {
+                console.log('User is signed in');
+                var displayName = user.displayName;
+                var email = user.email;
+                var emailVerified = user.emailVerified;
+                var photoURL = user.photoURL;
+                var isAnonymous = user.isAnonymous;
+                var uid = user.uid;
+                var providerData = user.providerData;
+                console.log(displayName + '(' + uid + '): ' + email);
+
+            } else {
+                // User is signed out.
+                console.log('log-out');
+            }
+        });
+
+        var provider = new firebase.auth.GoogleAuthProvider();
+        FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
+            // This gives you a Google Access Token. You can use it to access the Google API.
+            var token = result.credential.accessToken;
+            // The signed-in user info.
+            FIREBASE_USER = result.user;
+            scene.input.keyboard.on('keydown_SPACE', function (event)
+            {
+                scene.scene.start(SESSION_MANAGER.next_scene_name());
+
+            }, scene);
+
+            stats_text.setText('LOGGED IN. PRESS SPACE TO START');
+
+        }).catch(function (error) {
+            var errorCode = error.code;
+            var errorMessage = error.message;
+            var email = error.email;
+            var credential = error.credential;
+
+            console.log(errorMessage);
+        });
 
     }
     update ()
