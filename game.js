@@ -1,4 +1,4 @@
-const CONFIGS = [free_config,blob_config, circle_config, square_config]
+const CONFIGS = [free_config, blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
@@ -53,44 +53,37 @@ class SessionManager
     {
         console.log('constructing session manager');
         load_firebase_stats();
-        this.initialize_session_sequences();
-    }
-
-    update_next_scene_name()
-    {
-        var next = this._next_scene_name;
-        this.update_next_session()
-        return next;
+        this._scene_names = []
+        CONFIGS.forEach((config)=>this.initialize_scene(config.name))
     }
 
     next_scene_name()
     {
-        return this._next_scene_name;
-    }
-
-    update_next_session()
-    {
-        console.log('updating next session')
-        this._next_scene_name = this._scene_names.pop();
-        console.log(`next scene name is ${this._next_scene_name}`);
-        if(this._next_scene_name==undefined)
+        if (this._scene_names.length==0)
         {
-            console.log('session has ended');
-            this.initialize_session_sequences();
-        }
+            this._session_id =make_session_id();
+            console.log(`session_id ${this._session_id}`)
+            this._scene_names = create_random_scenes_sequence();
+            this.scenes_count = this._scene_names.length
+            update_time_filters(this._session_id);
 
+        }
+        return this._scene_names.pop();
+    
     }
 
-    get remaining_scenes()
+    initialize_scene(scene_name)
     {
-        return this._scene_names.length
-
+        console.log(`initializing ${scene_name}`)
+        var config = CONFIGS.find(({ name }) => name === scene_name );
+        GAME.scene.add(config.name, InputScene, false, config);
+        GAME.scene.add(config.eval_name, EvaluateScene, false, config);
     }
 
     get session_state_string()
     {
-        var done_scenes = this._scene_count - this.remaining_scenes;
-        return  `${done_scenes}/${this._scene_count}`
+        var done_scenes = this.scenes_count - this._scene_names.length;
+        return  `${done_scenes}/${this.scenes_count}`
     }
 
     
@@ -100,18 +93,6 @@ class SessionManager
     }
 
 
-    initialize_session_sequences()
-    {
-        console.log('initialize sequences');
-        this._session_id =make_session_id();
-        console.log('session_id %s', this._session_id);
-        // create the time filters that will define the stats columns
-        update_time_filters(this._session_id);
-        // create the sequence of scene names
-        this._scene_names = create_random_scenes_sequence();
-        this._scene_count=this._scene_names.length;
-        this.update_next_session();
-    }
 
 
 }
@@ -359,24 +340,9 @@ function create_random_scenes_sequence()
 }
 
 
-var codes = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
+var CODES = ['ONE','TWO','THREE','FOUR','FIVE','SIX','SEVEN','EIGHT','NINE', 'ZERO'];
 var CODE2GAME = {}
-
-function initialize_scenes()
-{
-    function add_polygon_game(config, index)
-    {
-        var should_start = config.name==SESSION_MANAGER.next_scene_name();
-        should_start = false;
-        console.log('adding scene with config')
-        console.log(config)
-        GAME.scene.add(config.name, InputScene, should_start, config);
-        GAME.scene.add(config.eval_name, EvaluateScene, false, config);
-        CODE2GAME[Phaser.Input.Keyboard.KeyCodes[codes[index]]]=config.name;
-
-    }
-    CONFIGS.forEach(add_polygon_game)
-}
+// CONFIGS.forEach(function(x,index) { CODE2GAME[Phaser.Input.Keyboard.KeyCodes[CODES[index]]]=x})
 
 
 function make_status_string()
@@ -425,7 +391,7 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 SESSION_MANAGER = new SessionManager();
-                initialize_scenes(); //perhaps this should be put in session manager
+                //initialize_scenes(); //perhaps this should be put in session manager
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
@@ -478,7 +444,7 @@ class End extends Phaser.Scene {
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
-            this.scene.start(SESSION_MANAGER.update_next_scene_name());
+            this.scene.start(SESSION_MANAGER.next_scene_name());
 
         }, this);
 
