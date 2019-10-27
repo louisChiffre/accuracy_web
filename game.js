@@ -469,6 +469,7 @@ class End extends Phaser.Scene {
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, 'WE ARE DONE').setFontSize(16).setFontFamily(FONT_FAMILY)
+        upload_firebase_stats();
          
         this.input.keyboard.on('keydown_SPACE', function (event)
         {

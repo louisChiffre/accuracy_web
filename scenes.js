@@ -424,7 +424,6 @@ class EvaluateScene extends Phaser.Scene {
                 session_id:SESSION_MANAGER.session_id
                 };
             var stats = update_local_stats(stat);
-            upload_firebase_stats();
             console.time('stats calculation');
             var historical_stats = calculate_historical_performance(stats);
             console.timeEnd('stats calculation');
