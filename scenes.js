@@ -113,8 +113,11 @@ function draw_player(data)
     GRAPHICS.fillStyle(GREEN, 0.3);
     GRAPHICS.fillPoints(data.reference.points);
 
-    GRAPHICS.fillStyle(RED, 0.3);
-    GRAPHICS.fillPoints(data.player.polygon.points);
+    if(has_point(data))
+    {
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillPoints(data.player.polygon.points);
+    }
 }
 
 function process_cursors_input(cursors, data)
