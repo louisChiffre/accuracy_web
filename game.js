@@ -54,21 +54,57 @@ class SessionManager
         load_firebase_stats();
         this._scene_names = []
         CONFIGS.forEach((config)=>this.initialize_scene(config.name))
+        this.state = 'START'
+    }
+
+    _create_random_scenes()
+    {
+        // we have reached the end
+        this._session_id =make_session_id();
+        console.log(`session_id ${this._session_id}`)
+        this._scene_names = create_random_scenes_sequence();
+        this.scenes_count = this._scene_names.length
+        update_time_filters(this._session_id);
+
     }
 
     next_scene_name()
     {
-        if (this._scene_names.length==0)
-        {
-            // we have reached the end
-            this._session_id =make_session_id();
-            console.log(`session_id ${this._session_id}`)
-            this._scene_names = create_random_scenes_sequence();
-            this.scenes_count = this._scene_names.length
-            update_time_filters(this._session_id);
+        var state2func = {
+            'END': function(this_){
+                console.log('end')
+                this_._create_random_scenes();
+                this_.state='PLAY'
+                return this_._scene_names.pop();
+            },
+            'PLAY': function(this_) {
+                if (this_._scene_names.length==0)
+                {
+                    this_.state='END'
+                    return 'End'
 
+                }
+                this_.state='PLAY'
+                return this_._scene_names.pop();
+
+            },
+
+            'START': function(this_){
+                this_._create_random_scenes();
+                this_.state='PLAY'
+                return this_._scene_names.pop();
+                },
         }
-        return this._scene_names.pop();
+        console.log(`STATE is ${this.state}`)
+        var next_scene =  state2func[this.state](this);
+        console.log(`STATE is now ${this.state} and next scene is ${next_scene}`)
+        return next_scene;
+
+        //if (this._scene_names.length==0)
+        //{
+
+        //}
+        //return this._scene_names.pop();
     
     }
 
@@ -415,23 +451,6 @@ class Start extends Phaser.Scene {
 
             }
         });
-
-        //var provider = new firebase.auth.GoogleAuthProvider();
-        //FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
-        //    // This gives you a Google Access Token. You can use it to access the Google API.
-        //    var token = result.credential.accessToken;
-        //    // The signed-in user info.
-        //    var user = result.user;
-        //    console.log(user);
-
-        //}).catch(function (error) {
-        //    var errorCode = error.code;
-        //    var errorMessage = error.message;
-        //    var email = error.email;
-        //    var credential = error.credential;
-
-        //    console.log(errorMessage);
-        //});
 
     }
     update ()
