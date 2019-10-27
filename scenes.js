@@ -397,7 +397,7 @@ class EvaluateScene extends Phaser.Scene {
             .setFontFamily(FONT_FAMILY)
         this.name_text = this.add.text(
             PLAYER_NAME_ORIGIN.x, 
-            PLAYER_NAME_ORIGIN.y, PLAYER_NAME).setFontSize(16).setFontFamily(FONT_FAMILY)
+            PLAYER_NAME_ORIGIN.y, get_display_name()).setFontSize(16).setFontFamily(FONT_FAMILY)
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, '').setFontSize(16).setFontFamily(FONT_FAMILY)
@@ -490,7 +490,7 @@ class InputScene extends Phaser.Scene {
         }
 
         this.data_.config = config;
-        this.name_text = this.add.text( PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, `${PLAYER_NAME}`)
+        this.name_text = this.add.text( PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, get_display_name())
             .setFontSize(16).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: 16 });
 
         // remove duplication with evaluate

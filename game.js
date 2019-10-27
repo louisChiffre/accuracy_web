@@ -24,7 +24,6 @@ var PLAYER_ORIGIN = {x:LENGTH, y:LENGTH};
 var STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
 var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
 var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
-var PLAYER_NAME = 'Louis';
 
 
 const make_session_id = ()=>Date.now()
@@ -33,7 +32,7 @@ var TEXT_HEIGHT = 15
 
 var REFERENCE_COLOR = WHITE
 
-var config = {
+var PHASER_CONFIG = {
     width: WIDTH+100,
     height: HEIGHT+100,
     type: Phaser.AUTO,
@@ -45,7 +44,7 @@ var config = {
 };
 
 var GRAPHICS;
-var GAME = new Phaser.Game(config);
+var GAME = new Phaser.Game(PHASER_CONFIG);
 
 class SessionManager
 {
@@ -61,6 +60,7 @@ class SessionManager
     {
         if (this._scene_names.length==0)
         {
+            // we have reached the end
             this._session_id =make_session_id();
             console.log(`session_id ${this._session_id}`)
             this._scene_names = create_random_scenes_sequence();
@@ -399,11 +399,20 @@ class Start extends Phaser.Scene {
 
                 }, scene);
 
-                stats_text.setText('LOGGED IN. PRESS SPACE TO START');
+                stats_text.setText(`LOGGED IN AS ${get_display_name()}. PRESS SPACE TO START`);
 
             } else {
                 stats_text.setText('LOGGED OUT. PLEASE LOG IN');
                 console.log('log-out');
+                var provider = new firebase.auth.GoogleAuthProvider();
+                FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
+                    console.log(user);
+
+                }).catch(function (error) {
+                    var errorMessage = error.message;
+                    console.log(errorMessage);
+                });
+
             }
         });
 
@@ -454,9 +463,16 @@ class End extends Phaser.Scene {
     }
 }
 
+function get_display_name()
+{
+    return FIREBASE_USER.email;
+
+}
+
 var SESSION_MANAGER;
 
 
-GAME.scene.add('Start', Start, true, config);
-GAME.scene.add('End', End, false, config);
+// let's start
+GAME.scene.add('Start', Start, true)
+GAME.scene.add('End', End, false)
 //GAME.canvas.oncontextmenu = (e) => e.preventDefault()
