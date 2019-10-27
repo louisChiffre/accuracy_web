@@ -1,5 +1,4 @@
-//const CONFIGS = [free_config, blob_config, circle_config, square_config]
-const CONFIGS = [blob_config, circle_config, square_config]
+const CONFIGS = [free_config, blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
@@ -15,6 +14,9 @@ var RED=0xFF0000;
 var GREEN=0x00FF00;
 
 var FONT_FAMILY = 'monospace';
+var DEFAULT_FONT_SIZE = 16;
+//var FONT_FAMILY = 'battle';
+//var DEFAULT_FONT_SIZE = 14;
 
 
 // roughly the size of a panel
@@ -100,13 +102,6 @@ class SessionManager
         var next_scene =  state2func[this.state](this);
         console.log(`STATE is now ${this.state} and next scene is ${next_scene}`)
         return next_scene;
-
-        //if (this._scene_names.length==0)
-        //{
-
-        //}
-        //return this._scene_names.pop();
-    
     }
 
     initialize_scene(scene_name)
@@ -249,8 +244,8 @@ var TIME_FILTERS;
 
 function update_time_filters(current_session_id)
 {
-    stats = read_stats();
-    session_ids = stats.map(x=>x.session_id).sort();
+    var stats = read_stats();
+    var session_ids = stats.map(x=>x.session_id).sort();
     TIME_FILTERS = {};
     TIME_FILTERS['session'] = x => x.session_id == current_session_id
     if (session_ids.length>0)

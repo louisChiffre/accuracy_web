@@ -400,10 +400,12 @@ class EvaluateScene extends Phaser.Scene {
             .setFontFamily(FONT_FAMILY)
         this.name_text = this.add.text(
             PLAYER_NAME_ORIGIN.x, 
-            PLAYER_NAME_ORIGIN.y, get_display_name()).setFontSize(16).setFontFamily(FONT_FAMILY)
+            PLAYER_NAME_ORIGIN.y, get_display_name()).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, '').setFontSize(16).setFontFamily(FONT_FAMILY)
+            STATS_ORIGIN.y, '')
+            .setFontSize(DEFAULT_FONT_SIZE)
+            .setFontFamily(FONT_FAMILY)
         this.stats_text.setText(make_status_string());
 
         this.input.keyboard.on('keydown_SPACE', function (event)
@@ -493,12 +495,12 @@ class InputScene extends Phaser.Scene {
 
         this.data_.config = config;
         this.name_text = this.add.text( PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, get_display_name())
-            .setFontSize(16).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: 16 });
+            .setFontSize(DEFAULT_FONT_SIZE).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: DEFAULT_FONT_SIZE });
 
         // remove duplication with evaluate
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
-            STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
+            STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
 
         this.stats_text.setText(make_status_string());
 
