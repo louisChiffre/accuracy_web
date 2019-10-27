@@ -1,4 +1,5 @@
 const CONFIGS = [free_config, blob_config, circle_config, square_config]
+const CONFIGS = [blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
@@ -360,7 +361,7 @@ function calc_score(textureManager, image)
 
 function create_random_scenes_sequence()
 {
-    var repetitions_per_game = 1;
+    var repetitions_per_game = 3;
     var random_scenes = [];
     function add(config)
     {
