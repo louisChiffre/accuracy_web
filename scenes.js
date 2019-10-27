@@ -409,15 +409,6 @@ class EvaluateScene extends Phaser.Scene {
 
         }, this);
 
-        //var PLAYER_NAMES = ['Louis'];
-        //this.input.keyboard.on('keydown_A', function (event)
-        //{
-        //    PLAYER_NAME = Phaser.Math.RND.pick(PLAYER_NAMES);
-        //    this.name_text.setText(PLAYER_NAME);
-        //    console.log(PLAYER_NAME)
-
-        //}, this);
-
         var textureManager = this.textures;
         var scene = this;
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
@@ -429,7 +420,8 @@ class EvaluateScene extends Phaser.Scene {
                 score:score,
                 session_id:SESSION_MANAGER.session_id
                 };
-            var stats = save_stats(stat);
+            var stats = update_local_stats(stat);
+            upload_firebase_stats();
             console.time('stats calculation');
             var historical_stats = calculate_historical_performance(stats);
             console.timeEnd('stats calculation');

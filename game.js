@@ -52,7 +52,7 @@ class SessionManager
     constructor() 
     {
         console.log('constructing session manager');
-        // prepare the sequence of game
+        load_firebase_stats();
         this.initialize_session_sequences();
     }
 
@@ -116,25 +116,83 @@ class SessionManager
 
 }
 
+function get_firebase_stats_path()
+{
+    return `/user/${FIREBASE_USER.uid}/stats.json`
+}
+
+function get_firebase_stats_ref()
+{
+    return FIREBASE_APP.storage().ref().child(get_firebase_stats_path()) 
+}
 
 function read_stats()
 {
-    console.time('retrieve stats');
-    var stats = JSON.parse(localStorage.getItem(PLAYER_NAME))||[];
-    console.timeEnd('retrieve stats');
+    var stats = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
     return stats;
+
 }
 
-function save_stats(stat)
+async function get_firebase_stats_url()
+{
+    var url = await get_firebase_stats_ref().getDownloadURL()
+    .catch(function(error) {
+        if (error.code == 'storage/object-not-found')
+        {
+            console.log('no stats available');
+            return '' 
+        }
+
+      }
+    );
+    return url
+}
+
+function  save_local_stats(stats)
+{
+    console.log(`saving ${stats.length} points`)
+    localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
+}
+
+async function load_firebase_stats()
+{
+    // CORS configuration needs to be done see https://firebase.google.com/docs/storage/web/download-files
+    console.time('stats firebase read');
+    const url = await get_firebase_stats_url()
+    if (url=='')
+    {
+        console.log('no stats available');
+        save_local_stats([]);
+        return;
+    }
+
+    const response = await fetch(url);
+    const promise = await response.text()
+        .then(function(text){
+            stats = JSON.parse(LZString.decompressFromBase64(text))
+            save_local_stats(stats)
+            }
+            )
+
+    console.timeEnd('stats firebase read');
+}
+
+async function upload_firebase_stats()
+{
+    var stats = read_stats();
+    console.time('upload stats')
+    get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats)))
+
+        .then(function(snapshot) { console.timeEnd('upload stats')})
+
+}
+
+function update_local_stats(stat)
 {
     // load the stats from local storage
-    //console.time('stats calculation');
     var stats = read_stats();
     stats.push(stat)
-    //calculate_stats_summary(stats);
-    // save the stats
-    localStorage.setItem(PLAYER_NAME, JSON.stringify(stats));
-    //console.timeEnd('stats calculation');
+    save_local_stats(stats);
     return stats
 }
 
@@ -334,8 +392,6 @@ function make_status_string()
 class Start extends Phaser.Scene {
     constructor(config) {
         super(config);
-        var stats = read_stats();
-        var table = make_score_table(stats);
     }
 
     preload()
@@ -367,35 +423,40 @@ class Start extends Phaser.Scene {
                 var uid = user.uid;
                 var providerData = user.providerData;
                 console.log(displayName + '(' + uid + '): ' + email);
+                FIREBASE_USER = user;
+                SESSION_MANAGER = new SessionManager();
+                initialize_scenes(); //perhaps this should be put in session manager
+
+                scene.input.keyboard.on('keydown_SPACE', function (event)
+                {
+                    scene.scene.start(SESSION_MANAGER.next_scene_name());
+
+                }, scene);
+
+                stats_text.setText('LOGGED IN. PRESS SPACE TO START');
 
             } else {
-                // User is signed out.
+                stats_text.setText('LOGGED OUT. PLEASE LOG IN');
                 console.log('log-out');
             }
         });
 
-        var provider = new firebase.auth.GoogleAuthProvider();
-        FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
-            // This gives you a Google Access Token. You can use it to access the Google API.
-            var token = result.credential.accessToken;
-            // The signed-in user info.
-            FIREBASE_USER = result.user;
-            scene.input.keyboard.on('keydown_SPACE', function (event)
-            {
-                scene.scene.start(SESSION_MANAGER.next_scene_name());
+        //var provider = new firebase.auth.GoogleAuthProvider();
+        //FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
+        //    // This gives you a Google Access Token. You can use it to access the Google API.
+        //    var token = result.credential.accessToken;
+        //    // The signed-in user info.
+        //    var user = result.user;
+        //    console.log(user);
 
-            }, scene);
+        //}).catch(function (error) {
+        //    var errorCode = error.code;
+        //    var errorMessage = error.message;
+        //    var email = error.email;
+        //    var credential = error.credential;
 
-            stats_text.setText('LOGGED IN. PRESS SPACE TO START');
-
-        }).catch(function (error) {
-            var errorCode = error.code;
-            var errorMessage = error.message;
-            var email = error.email;
-            var credential = error.credential;
-
-            console.log(errorMessage);
-        });
+        //    console.log(errorMessage);
+        //});
 
     }
     update ()
@@ -427,12 +488,7 @@ class End extends Phaser.Scene {
     }
 }
 
-//var name = prompt('Enter your name');
-PLAYER_NAME = 'Louis';
-
-var SESSION_MANAGER = new SessionManager();
-// instantiate all scenes
-initialize_scenes(); //perhaps this should be put in session manager
+var SESSION_MANAGER;
 
 
 GAME.scene.add('Start', Start, true, config);
