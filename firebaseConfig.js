@@ -1,6 +1,6 @@
 const firebase_config = {
     apiKey: "AIzaSyAxw9R2UWkSS5fdBYC71sLqIlQ9H_v0HWs",
-    authDomain: "accuracy-dc8f1.firebaseapp.com",
+    authDomain: "drawingtraining.com",
     databaseURL: "https://accuracy-dc8f1.firebaseio.com",
     projectId: "accuracy-dc8f1",
     storageBucket: "accuracy-dc8f1.appspot.com",
