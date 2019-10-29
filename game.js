@@ -481,7 +481,15 @@ class End extends Phaser.Scene {
 
 function get_display_name()
 {
-    return FIREBASE_USER.email;
+    var provider_id = FIREBASE_USER.providerData[0].providerId;
+
+    providerId2name = {
+        'google.com' : FIREBASE_USER.email,
+        'github.com': FIREBASE_USER.providerData[0].email,
+
+    }
+    var display_name = providerId2name[provider_id] || FIREBASE_USER.email;
+    return display_name;
 
 }
 
