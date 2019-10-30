@@ -180,13 +180,25 @@ async function load_firebase_stats()
         return;
     }
 
-    const response = await fetch(url);
+    const response = await fetch(url).then(function(response) {
+        if (!response.ok) {
+            debugger
+            throw Error(response.statusText);
+        }
+        return response;
+    }).catch(function(error) {
+        console.log(error);
+    });
+
     const promise = await response.text()
         .then(function(text){
             stats = JSON.parse(LZString.decompressFromBase64(text))
             save_local_stats(stats)
             }
             )
+        .catch(function(error) {
+            console.log(error);
+        });
 
     console.timeEnd('stats firebase read');
 }
