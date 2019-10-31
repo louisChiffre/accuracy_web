@@ -4,6 +4,7 @@ const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
 var FIREBASE_USER;
+var FIREBASE_DB;
 
 
 var BORDER = 10;
@@ -166,6 +167,26 @@ function  save_local_stats(stats)
 {
     console.log(`saving ${stats.length} points`)
     localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
+}
+
+function save_stat_firestore(stat)
+{
+    FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats').doc(stat.session_id.toString()).set(stat)
+    .then(function(docRef) {
+        console.log("Document written ", stat);
+    })
+    .catch(function(error) {
+        console.error("Error adding document: ", error);
+    });
+}
+
+function read_stat_firestore()
+{
+    var ref = FIREBASE_DB.collection("users").doc(FIREBASE_USER.uid).collection('stats').get().then( function(querySnapshot) {
+        querySnapshot.forEach(function(doc) {
+            // doc.data() is never undefined for query doc snapshots
+            console.log(doc.id, " => ", doc.data());
+        })})
 }
 
 async function load_firebase_stats()
@@ -435,7 +456,7 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 SESSION_MANAGER = new SessionManager();
-                //initialize_scenes(); //perhaps this should be put in session manager
+                FIREBASE_DB = firebase.firestore();
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
