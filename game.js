@@ -171,22 +171,26 @@ function  save_local_stats(stats)
 
 function save_stat_firestore(stat)
 {
-    FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats').doc(stat.session_id.toString()).set(stat)
+    console.time('save stat to cloudstore');
+    FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats').doc(stat.time.toString()).set(stat)
     .then(function(docRef) {
-        console.log("Document written ", stat);
+        console.timeEnd('save stat to cloudstore');
     })
     .catch(function(error) {
         console.error("Error adding document: ", error);
     });
 }
 
-function read_stat_firestore()
+async function read_stat_firestore()
 {
-    var ref = FIREBASE_DB.collection("users").doc(FIREBASE_USER.uid).collection('stats').get().then( function(querySnapshot) {
+    console.time('retrieving data from firestore');
+    const data = [];
+    var ref = await FIREBASE_DB.collection("users").doc(FIREBASE_USER.uid).collection('stats').get().then( function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
-            // doc.data() is never undefined for query doc snapshots
-            console.log(doc.id, " => ", doc.data());
+            data.push(doc.data());
         })})
+    console.timeEnd('retrieving data from firestore')
+    return data;
 }
 
 async function load_firebase_stats()
@@ -200,10 +204,10 @@ async function load_firebase_stats()
         save_local_stats([]);
         return;
     }
+    const data_ = await read_stat_firestore();
 
     const response = await fetch(url).then(function(response) {
         if (!response.ok) {
-            debugger
             throw Error(response.statusText);
         }
         return response;
