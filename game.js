@@ -522,7 +522,7 @@ function get_display_name()
 
     }
     var display_name = providerId2name[provider_id] || FIREBASE_USER.email;
-    return display_name;
+    return `${display_name} [${provider_id}]`;
 
 }
 
