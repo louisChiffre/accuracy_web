@@ -472,23 +472,9 @@ class EvaluateScene extends Phaser.Scene {
 
     create(data)
     {
-        GRAPHICS = this.add.graphics();
+        make_scene_setup(this);
         this.data_=data;
-        this.score_text = this.add.text(
-            SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
-            .setFontSize(64)
-            .setFontStyle('bold')
-            .setFontFamily(FONT_FAMILY)
-        this.name_text = this.add.text(
-            PLAYER_NAME_ORIGIN.x, 
-            PLAYER_NAME_ORIGIN.y, get_display_name()).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
-
-        // TODO remove duplication with InputScene
-        this.stats_text = this.add.text(
-            STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, '')
-            .setFontSize(DEFAULT_FONT_SIZE)
-            .setFontFamily(FONT_FAMILY)
+        this.name_text.setText(get_display_name())
         this.stats_text.setText(make_status_string());
 
         var explanations = [
@@ -574,7 +560,7 @@ class InputScene extends Phaser.Scene {
     create(config)
     {
         console.log('starting scene %s', config.name)
-        GRAPHICS = this.add.graphics();
+        make_scene_setup(this);
 
         if ('make_data' in config)
         {
@@ -589,20 +575,9 @@ class InputScene extends Phaser.Scene {
         }
 
         this.data_.config = config;
-        this.name_text = this.add.text( PLAYER_NAME_ORIGIN.x, PLAYER_NAME_ORIGIN.y, get_display_name())
-            .setFontSize(DEFAULT_FONT_SIZE).setFontStyle('bold').setFontFamily(FONT_FAMILY).setPadding({ right: DEFAULT_FONT_SIZE });
-
-        // remove duplication with evaluate
-        this.stats_text = this.add.text(
-            STATS_ORIGIN.x, 
-            STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
+        this.name_text.setText(get_display_name())
         this.stats_text.setText(make_status_string());
-
-        this.help_text = this.add.text(
-            HELP_ORIGIN.x, 
-            HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
         this.help_text.setText(make_help_text(config.control_help_instructions||[], 'validate'))
-
 
 
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);

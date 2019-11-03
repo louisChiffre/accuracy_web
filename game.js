@@ -58,20 +58,20 @@ class SessionManager
     constructor() 
     {
         console.log('constructing session manager');
-        load_firebase_stats();
         this._scene_names = []
+        // we make sure all the scenes are initialized
         CONFIGS.forEach((config)=>this.initialize_scene(config.name))
         this.state = 'START'
     }
 
     _create_random_scenes()
     {
-        // we have reached the end
         this._session_id =make_session_id();
         console.log(`session_id ${this._session_id}`)
-        this._scene_names = create_random_scenes_sequence();
-        this.scenes_count = this._scene_names.length
         update_time_filters(this._session_id);
+        this._scene_names = create_random_scenes_sequence();
+
+        this.scenes_count = this._scene_names.length
 
     }
 
@@ -80,9 +80,8 @@ class SessionManager
         var state2func = {
             'END': function(this_){
                 console.log('end')
-                this_._create_random_scenes();
-                this_.state='PLAY'
-                return this_._scene_names.pop();
+                this_.state = 'Menu'
+                return 'Menu'
             },
             'PLAY': function(this_) {
                 if (this_._scene_names.length==0)
@@ -111,6 +110,10 @@ class SessionManager
     initialize_scene(scene_name)
     {
         console.log(`initializing ${scene_name}`)
+        if (GAME.scene.scenes.map((x)=>x.scene.key).includes(scene_name))
+        {
+            return;
+        }
         var config = CONFIGS.find(({ name }) => name === scene_name );
         GAME.scene.add(config.name, InputScene, false, config);
         GAME.scene.add(config.eval_name, EvaluateScene, false, config);
@@ -350,8 +353,6 @@ const median = arr => {
   return arr.length % 2 !== 0 ? nums[mid] : (nums[mid - 1] + nums[mid]) / 2;
 };
 
-
-
 var SPEED = 1.0
 
 function calc_score(textureManager, image)
@@ -428,6 +429,27 @@ function make_status_string()
     return stat_strings;
 }
 
+function make_scene_setup(scene)
+{
+    GRAPHICS = scene.add.graphics();
+    scene.stats_text = scene.add.text(
+        STATS_ORIGIN.x, 
+        STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
+    scene.score_text = scene.add.text(
+        SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
+        .setFontSize(64)
+        .setFontStyle('bold')
+        .setFontFamily(FONT_FAMILY);
+    scene.name_text = scene.add.text(
+        PLAYER_NAME_ORIGIN.x, 
+        PLAYER_NAME_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY);
+
+    scene.help_text = scene.add.text(
+        HELP_ORIGIN.x, 
+        HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
+
+}
+
 // Starting scene
 class Start extends Phaser.Scene {
     constructor(config) {
@@ -444,10 +466,8 @@ class Start extends Phaser.Scene {
 
     create(config)
     {
-        GRAPHICS = this.add.graphics();
-        var stats_text = this.add.text(
-            STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, 'LOGGING IN ...').setFontSize(16).setFontFamily(FONT_FAMILY)
+        make_scene_setup(this);
+        this.stats_text.setText('LOGGING IN ...')
 
         FIREBASE_APP = firebase.initializeApp(firebase_config);
         var scene = this;
@@ -465,18 +485,18 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
+                load_firebase_stats();
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
-                    SESSION_MANAGER = new SessionManager();
-                    scene.scene.start(SESSION_MANAGER.next_scene_name());
+                    scene.scene.start('Menu')
 
                 }, scene);
 
-                stats_text.setText(`LOGGED IN AS ${get_display_name()}. \nPRESS SPACE TO START`);
+                scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}. \nPRESS SPACE TO START`);
 
             } else {
-                stats_text.setText('LOGGED OUT. PLEASE LOG IN');
+                scene.stats_text.setText('LOGGED OUT. PLEASE LOG IN');
                 console.log('log-out');
                 var provider = new firebase.auth.GoogleAuthProvider();
                 FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
@@ -503,17 +523,37 @@ class End extends Phaser.Scene {
 
     create(config)
     {
-        GRAPHICS = this.add.graphics();
-        this.stats_text = this.add.text(
-            STATS_ORIGIN.x, 
-            STATS_ORIGIN.y, 'WE ARE DONE').setFontSize(16).setFontFamily(FONT_FAMILY)
+        make_scene_setup(this);
+        this.stats_text.setText('WE ARE DONE\n[recap of performance]')
         upload_firebase_stats();
-         
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(SESSION_MANAGER.next_scene_name());
 
         }, this);
+
+    }
+    update ()
+    {
+    }
+}
+
+class Menu extends Phaser.Scene {
+    constructor(config) {
+        super(config);
+    }
+
+    create(config)
+    {
+        make_scene_setup(this);
+        this.stats_text.setText( 'MENU! \nHit Space Bar to start');
+        var scene = this;
+        scene.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            SESSION_MANAGER = new SessionManager();
+            scene.scene.start(SESSION_MANAGER.next_scene_name());
+
+        }, scene);
 
     }
     update ()
@@ -540,5 +580,6 @@ var SESSION_MANAGER;
 
 // let's start
 GAME.scene.add('Start', Start, true)
+GAME.scene.add('Menu', Menu, false)
 GAME.scene.add('End', End, false)
 //GAME.canvas.oncontextmenu = (e) => e.preventDefault()
