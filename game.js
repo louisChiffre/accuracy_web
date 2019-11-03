@@ -1,5 +1,6 @@
 //const CONFIGS = [free_config, blob_config, circle_config, square_config]
-const CONFIGS = [blob_config, circle_config, square_config]
+//const CONFIGS = [triangle_config]//, blob_config, circle_config, square_config]
+const CONFIGS = [triangle_config, blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
@@ -459,16 +460,16 @@ class Start extends Phaser.Scene {
                 var providerData = user.providerData;
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
-                SESSION_MANAGER = new SessionManager();
                 FIREBASE_DB = firebase.firestore();
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
+                    SESSION_MANAGER = new SessionManager();
                     scene.scene.start(SESSION_MANAGER.next_scene_name());
 
                 }, scene);
 
-                stats_text.setText(`LOGGED IN AS ${get_display_name()}. PRESS SPACE TO START`);
+                stats_text.setText(`LOGGED IN AS ${get_display_name()}. \nPRESS SPACE TO START`);
 
             } else {
                 stats_text.setText('LOGGED OUT. PLEASE LOG IN');

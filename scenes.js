@@ -7,6 +7,15 @@ function make_random_square(min_height, max_height, min_width, max_width)
     return new Phaser.Geom.Rectangle(0, 0, width, height);
 }
 
+function make_random_triangle(n_rotation)
+{
+    var x = Phaser.Math.Between(0, LENGTH);  
+    var y =  Phaser.Math.Between(100, LENGTH);
+    var p = rotate_points([0, 0, LENGTH, 0, x, y], n_rotation);
+    return new Phaser.Geom.Triangle(p[0], p[1], p[2], p[3], p[4], p[5]);
+}
+
+
 function make_random_circle(LENGTH)
 {
     return new Phaser.Geom.Circle(LENGTH*0.5, LENGTH*0.5, Phaser.Math.Between(50, 0.4*LENGTH));
@@ -237,6 +246,8 @@ var blob_config = {
     'inputs': {},
 }
 
+
+
 var free_config = {
     'name': 'Free',
     'eval_name': 'EvalFree',
@@ -314,6 +325,64 @@ var circle_config = {
     },
 
 };
+var triangle_config = {
+    'inputs': {},
+    'name': 'Triangle',
+    'eval_name': 'EvalTriangle',
+    'make_data': function(cache)
+    {
+        var n_rotation = Phaser.Math.Between(0,3);
+        return {
+            'reference': make_random_triangle(n_rotation),
+            'player': make_random_triangle(n_rotation)
+        }
+
+
+    },
+    'draw_reference': function(data)
+    {
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokeTriangleShape(data.reference);
+    },
+
+    'draw_player': function(data)
+    {
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokeTriangleShape(data.player);
+    },
+
+    'draw_evaluation': function(data)
+    {
+        GRAPHICS.fillStyle(GREEN, 0.3);
+        GRAPHICS.fillTriangleShape(data.reference);
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillTriangleShape(data.player);
+    },
+
+    'process_cursors_input': function(cursors, data)
+    {
+        if (cursors.shift.isDown)
+            SPEED=10;
+        else
+            SPEED=1; 
+        if (cursors.up.isDown)    data.player.y3 +=   -SPEED
+        if (cursors.down.isDown)  data.player.y3 +=    SPEED
+        if (cursors.left.isDown)  data.player.x3 += -SPEED
+        if (cursors.right.isDown) data.player.x3 +=  SPEED
+
+    },
+
+    'pointermove': function(pointer, data)
+    {
+        var position =get_player_relative_position(pointer);
+        data.player.y3 = position.y
+        data.player.x3 = position.x
+
+    },
+
+
+};
+
 
 var square_config = {
     'inputs': {},
@@ -368,7 +437,6 @@ var square_config = {
 
 
 };
-
 
 
 class EvaluateScene extends Phaser.Scene {
