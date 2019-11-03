@@ -1,3 +1,8 @@
+function make_help_text(control_help_instructions, space_bar_action)
+{
+    return ['ORIENTATION'].concat(control_help_instructions.concat([`Hit Space Bar to ${space_bar_action}`]).map((x)=>' -' + x)).join('\n')
+}
+
 function make_random_square(min_height, max_height, min_width, max_width)
 {
     console.assert(min_height <= max_height)
@@ -477,12 +482,24 @@ class EvaluateScene extends Phaser.Scene {
         this.name_text = this.add.text(
             PLAYER_NAME_ORIGIN.x, 
             PLAYER_NAME_ORIGIN.y, get_display_name()).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
+
+        // TODO remove duplication with InputScene
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y, '')
             .setFontSize(DEFAULT_FONT_SIZE)
             .setFontFamily(FONT_FAMILY)
         this.stats_text.setText(make_status_string());
+
+        var explanations = [
+            'Brown is the intersection between your drawing',
+            'Big number is your score out of 1000'
+        ]
+        this.help_text = this.add.text(
+            HELP_ORIGIN.x, 
+            HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY).setText(make_help_text(explanations, 'continue'))
+
+
 
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
@@ -494,7 +511,8 @@ class EvaluateScene extends Phaser.Scene {
         var scene = this;
         this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
         {
-            var score = calc_score(textureManager, image);
+            var score_info = calc_score(textureManager, image);
+            var score = score_info.score;
             var stat  = {
                 time: Date.now(),
                 name:scene.data_.config.name,
@@ -506,8 +524,8 @@ class EvaluateScene extends Phaser.Scene {
             console.time('stats calculation');
             var historical_stats = calculate_historical_performance(stats);
             console.timeEnd('stats calculation');
-
             scene.score_text.setText((1000*score).toFixed(0));
+            
         });
         this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
 
@@ -580,15 +598,10 @@ class InputScene extends Phaser.Scene {
             STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
         this.stats_text.setText(make_status_string());
 
-    
         this.help_text = this.add.text(
             HELP_ORIGIN.x, 
             HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
-        function make_help_text(control_help_instructions)
-        {
-            return ['INSTRUCTIONS'].concat(control_help_instructions.concat(['Hit Space Bar to validate']).map((x)=>' -' + x)).join('\n')
-        }
-        this.help_text.setText(make_help_text(config.control_help_instructions||[]))
+        this.help_text.setText(make_help_text(config.control_help_instructions||[], 'validate'))
 
 
 

@@ -388,9 +388,12 @@ function calc_score(textureManager, image)
     var intersection = M[intersection_key]||0;
     var union = only_ref + only_player + intersection;
     var score = intersection/union;
-    //console.log(score)
     textureManager.remove('snap');
-    return score;
+    return {
+        intersection:intersection, 
+        union:union,
+        score:score,
+    };
 }
 
 function create_random_scenes_sequence()
