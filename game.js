@@ -55,25 +55,15 @@ var GAME = new Phaser.Game(PHASER_CONFIG);
 
 class SessionManager
 {
-    constructor() 
+    constructor(scene_names) 
     {
         console.log('constructing session manager');
-        this._scene_names = []
+        this._scene_names = scene_names
         // we make sure all the scenes are initialized
         CONFIGS.forEach((config)=>this.initialize_scene(config.name))
         this.state = 'START'
     }
 
-    _create_random_scenes()
-    {
-        this._session_id =make_session_id();
-        console.log(`session_id ${this._session_id}`)
-        update_time_filters(this._session_id);
-        this._scene_names = create_random_scenes_sequence();
-
-        this.scenes_count = this._scene_names.length
-
-    }
 
     next_scene_name()
     {
@@ -96,7 +86,10 @@ class SessionManager
             },
 
             'START': function(this_){
-                this_._create_random_scenes();
+                this_._session_id =make_session_id();
+                console.log(`session_id ${this_._session_id}`)
+                update_time_filters(this_._session_id);
+                this_.scenes_count = this_._scene_names.length
                 this_.state='PLAY'
                 return this_._scene_names.pop();
                 },
@@ -170,16 +163,16 @@ async function get_firebase_stats_url()
 
 function  save_local_stats(stats)
 {
-    console.log(`saving ${stats.length} points`)
+    console.log(`saving ${stats.length} points to local store`)
     localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
 }
 
 function save_stat_firestore(stat)
 {
-    console.time('save stat to cloudstore');
+    console.time('save stat to firestore');
     FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats').doc(stat.time.toString()).set(stat)
     .then(function(docRef) {
-        console.timeEnd('save stat to cloudstore');
+        console.timeEnd('save stat to firestore');
     })
     .catch(function(error) {
         console.error("Error adding document: ", error);
@@ -236,10 +229,10 @@ async function load_firebase_stats()
 async function upload_firebase_stats()
 {
     var stats = read_stats();
-    console.time('upload stats')
+    console.time('upload stats to remote file')
     get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats)))
 
-        .then(function(snapshot) { console.timeEnd('upload stats')})
+        .then(function(snapshot) { console.timeEnd('upload stats to remote file')})
 
 }
 
@@ -447,6 +440,12 @@ function make_scene_setup(scene)
     scene.help_text = scene.add.text(
         HELP_ORIGIN.x, 
         HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
+    scene.input.keyboard.on('keydown_ESC', function (event)
+    {
+        this.scene.start('Menu');
+
+    }, scene);
+
 
 }
 
@@ -548,10 +547,17 @@ class Menu extends Phaser.Scene {
         make_scene_setup(this);
         this.stats_text.setText( 'MENU! \nHit Space Bar to start');
         var scene = this;
-        scene.input.keyboard.on('keydown_SPACE', function (event)
+        const M = Phaser.Input.Keyboard.KeyCodes;
+        var key2seqfun = {}
+        key2seqfun[M['SPACE']] =  create_random_scenes_sequence;
+        key2seqfun[M['H']] =  ()=>['Circle','Circle'];
+        scene.input.keyboard.on('keydown', function (event)
         {
-            SESSION_MANAGER = new SessionManager();
-            scene.scene.start(SESSION_MANAGER.next_scene_name());
+            if(event.keyCode in key2seqfun)
+            {
+                SESSION_MANAGER = new SessionManager(key2seqfun[event.keyCode]());
+                scene.scene.start(SESSION_MANAGER.next_scene_name());
+            }
 
         }, scene);
 
