@@ -221,6 +221,11 @@ function pointerdown(pointer, data, scene)
 var blob_config = {
     'name': 'Blob',
     'eval_name': 'EvalBlob',
+    'control_help_instructions': [
+        'Use mouse to control last point', 
+        'Left-click to freeze current point', 
+        'Click on the first point to close polygon', 
+        'Once closed, single point can be dragged and dropped by holding left button'],
     'make_data': function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
@@ -281,6 +286,7 @@ var circle_config = {
     'inputs': {},
     'name': 'Circle',
     'eval_name': 'EvalCircle',
+    'control_help_instructions': ['Use mouse pointer to control radius of circle'],
     'make_reference': function(){
         return make_random_circle(LENGTH);
     },
@@ -329,6 +335,7 @@ var triangle_config = {
     'inputs': {},
     'name': 'Triangle',
     'eval_name': 'EvalTriangle',
+    'control_help_instructions': ['Use cursor to control edge of triangle'],
     'make_data': function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
@@ -388,6 +395,7 @@ var square_config = {
     'inputs': {},
     'name': 'Square',
     'eval_name': 'EvalSquare',
+    'control_help_instructions': ['Use cursor to control edge of rectangle'],
     'make_reference': function(){
         return make_random_square(50, LENGTH, 50, LENGTH);
     },
@@ -570,8 +578,19 @@ class InputScene extends Phaser.Scene {
         this.stats_text = this.add.text(
             STATS_ORIGIN.x, 
             STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
-
         this.stats_text.setText(make_status_string());
+
+    
+        this.help_text = this.add.text(
+            HELP_ORIGIN.x, 
+            HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
+        function make_help_text(control_help_instructions)
+        {
+            return ['INSTRUCTIONS'].concat(control_help_instructions.concat(['Hit Space Bar to validate']).map((x)=>' -' + x)).join('\n')
+        }
+        this.help_text.setText(make_help_text(config.control_help_instructions||[]))
+
+
 
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
         this.cursors = this.input.keyboard.createCursorKeys();
@@ -631,7 +650,6 @@ class InputScene extends Phaser.Scene {
     {
         GRAPHICS.clear();
         this.data_.config.process_cursors_input(this.cursors, this.data_);
-
 
         GRAPHICS.save();
         GRAPHICS.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
