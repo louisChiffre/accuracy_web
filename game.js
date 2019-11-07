@@ -129,6 +129,17 @@ class SessionManager
 
 }
 
+const get_firestore_stats_collection=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats')
+function remove_duplicates(stats)
+{
+    var txt =`remove duplicates of ${stats.length}`
+    console.time(txt)
+    // would prefer to use something pure es6
+    var result = _.uniqWith(stats, _.isEqual);
+    console.timeEnd(txt);
+    return result
+}
+
 function get_firebase_stats_path()
 {
     return `/user/${FIREBASE_USER.uid}/stats.json`
@@ -139,17 +150,17 @@ function get_firebase_stats_ref()
     return FIREBASE_APP.storage().ref().child(get_firebase_stats_path()) 
 }
 
-function read_stats()
+function read_local_stats()
 {
-    var stats = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
-    return stats;
+    var data = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
+    console.log(`${data.length} stat read from local storage`);
+    return data;
 
 }
 
 async function get_firebase_stats_url()
 {
-    var url = await get_firebase_stats_ref().getDownloadURL()
-    .catch(function(error) {
+    var url = await get_firebase_stats_ref().getDownloadURL().catch(function(error) {
         if (error.code == 'storage/object-not-found')
         {
             console.log('no stats available');
@@ -161,7 +172,7 @@ async function get_firebase_stats_url()
     return url
 }
 
-function  save_local_stats(stats)
+function save_local_stats(stats)
 {
     console.log(`saving ${stats.length} points to local store`)
     localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
@@ -170,7 +181,7 @@ function  save_local_stats(stats)
 function save_stat_firestore(stat)
 {
     console.time('save stat to firestore');
-    FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats').doc(stat.time.toString()).set(stat)
+    get_firestore_stats_collection().doc(stat.time.toString()).set(stat)
     .then(function(docRef) {
         console.timeEnd('save stat to firestore');
     })
@@ -183,15 +194,16 @@ async function read_stat_firestore()
 {
     console.time('retrieving data from firestore');
     const data = [];
-    var ref = await FIREBASE_DB.collection("users").doc(FIREBASE_USER.uid).collection('stats').get().then( function(querySnapshot) {
+    var ref = await get_firestore_stats_collection().get().then( function(querySnapshot) {
         querySnapshot.forEach(function(doc) {
             data.push(doc.data());
         })})
     console.timeEnd('retrieving data from firestore')
+    console.log(`${data.length} stat read from firestore`);
     return data;
 }
 
-async function load_firebase_stats()
+async function read_stat_firebase_storage()
 {
     // CORS configuration needs to be done see https://firebase.google.com/docs/storage/web/download-files
     console.time('stats firebase read');
@@ -199,11 +211,8 @@ async function load_firebase_stats()
     if (url=='')
     {
         console.log('no stats available');
-        save_local_stats([]);
-        return;
+        return[];
     }
-    const data_ = await read_stat_firestore();
-
     const response = await fetch(url).then(function(response) {
         if (!response.ok) {
             throw Error(response.statusText);
@@ -213,33 +222,61 @@ async function load_firebase_stats()
         console.log(error);
     });
 
+    var data = []
     const promise = await response.text()
         .then(function(text){
-            stats = JSON.parse(LZString.decompressFromBase64(text))
-            save_local_stats(stats)
-            }
-            )
+            data = JSON.parse(LZString.decompressFromBase64(text));})
         .catch(function(error) {
             console.log(error);
         });
-
+    console.log(data)
     console.timeEnd('stats firebase read');
+    console.log(`${data.length} stat read from firebase storage`);
+    return data;
 }
 
-async function upload_firebase_stats()
+async function write_stat_firebase_storage(stats)
 {
-    var stats = read_stats();
     console.time('upload stats to remote file')
-    get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats)))
+    get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats))).then(function(snapshot) { console.timeEnd('upload stats to remote file')})
+}
 
-        .then(function(snapshot) { console.timeEnd('upload stats to remote file')})
+async function sync_stats()
+{
+    // read stats from local storage, cloud storage
+    const local_stats = read_local_stats();
+    const db_stats = await read_stat_firestore();
+    const storage_stats = await read_stat_firebase_storage();
+    var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
+    console.log('local stats',local_stats)
+    console.log('db stats',db_stats)
+    console.log('storage_stats',storage_stats)
+    var stats = remove_duplicates(combined_stats)
+    console.log('combined_stats', combined_stats)
+    console.log('shrunk stats', stats)
+    console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
 
+    // save it locally
+    save_local_stats(stats);
+    write_stat_firebase_storage(stats);
+
+
+    // then delete db records
+    var batch = FIREBASE_DB.batch();
+    db_stats.forEach((stat)=> batch.delete(get_firestore_stats_collection().doc(stat.time.toString())))
+    var promise_end = await batch.commit().then(function(x){
+            console.log('firestore deletion done')
+            }
+            )
+        .catch(function(error) {
+            console.log('error')
+            console.log(error);
+        });
 }
 
 function update_local_stats(stat)
 {
-    // load the stats from local storage
-    var stats = read_stats();
+    var stats = read_local_stats();
     stats.push(stat)
     save_local_stats(stats);
     return stats
@@ -279,7 +316,7 @@ var TIME_FILTERS;
 
 function update_time_filters(current_session_id)
 {
-    var stats = read_stats();
+    var stats = read_local_stats();
     var session_ids = stats.map(x=>x.session_id).sort();
     TIME_FILTERS = {};
     TIME_FILTERS['session'] = x => x.session_id == current_session_id
@@ -415,7 +452,7 @@ var CODE2GAME = {}
 
 function make_status_string()
 {
-    var stats = read_stats();
+    var stats = read_local_stats();
     var historical_stats = calculate_historical_performance(stats);
     var stat_strings = make_stats_strings(historical_stats);
     stat_strings.push(SESSION_MANAGER.session_state_string)
@@ -484,7 +521,7 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
-                load_firebase_stats();
+                sync_stats();
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
@@ -524,7 +561,7 @@ class End extends Phaser.Scene {
     {
         make_scene_setup(this);
         this.stats_text.setText('WE ARE DONE\n[recap of performance]')
-        upload_firebase_stats();
+        sync_stats();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(SESSION_MANAGER.next_scene_name());
