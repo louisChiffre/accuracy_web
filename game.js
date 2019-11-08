@@ -248,12 +248,12 @@ async function sync_stats()
     const db_stats = await read_stat_firestore();
     const storage_stats = await read_stat_firebase_storage();
     var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
-    console.log('local stats',local_stats)
-    console.log('db stats',db_stats)
-    console.log('storage_stats',storage_stats)
+    //console.log('local stats',local_stats)
+    //console.log('db stats',db_stats)
+    //console.log('storage_stats',storage_stats)
     var stats = remove_duplicates(combined_stats)
-    console.log('combined_stats', combined_stats)
-    console.log('shrunk stats', stats)
+    //console.log('combined_stats', combined_stats)
+    //console.log('shrunk stats', stats)
     console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
 
     // save it locally
@@ -561,6 +561,8 @@ class End extends Phaser.Scene {
     {
         make_scene_setup(this);
         this.stats_text.setText('WE ARE DONE\n[recap of performance]')
+        summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
+        debugger
         sync_stats();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
