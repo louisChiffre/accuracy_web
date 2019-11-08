@@ -470,6 +470,12 @@ function make_scene_setup(scene)
         .setFontSize(64)
         .setFontStyle('bold')
         .setFontFamily(FONT_FAMILY);
+    scene.list_text = scene.add.text(
+        PLAYER_ORIGIN.x, PLAYER_ORIGIN.y, '')
+        .setFontSize(DEFAULT_FONT_SIZE)
+        .setFontStyle('bold')
+        .setFontFamily(FONT_FAMILY);
+
     scene.name_text = scene.add.text(
         PLAYER_NAME_ORIGIN.x, 
         PLAYER_NAME_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY);
@@ -560,10 +566,16 @@ class End extends Phaser.Scene {
     create(config)
     {
         make_scene_setup(this);
-        this.stats_text.setText('WE ARE DONE\n[recap of performance]')
-        summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
-        debugger
-        sync_stats();
+        //this.stats_text.setText('WE ARE DONE\n[recap of performance]')
+        this.stats_text.setText(make_status_string());
+        var current_stats = read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id)
+        console.log(current_stats)
+        var list_text = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`).join('\n');
+        this.help_text.setText(list_text)
+        this.list_text.setText('We are done. Hit space bar to continue')
+
+        //var =summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
+        //sync_stats();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(SESSION_MANAGER.next_scene_name());
