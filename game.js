@@ -1,5 +1,34 @@
-//const CONFIGS = [free_config, blob_config, circle_config, square_config]
-//const CONFIGS = [triangle_config]//, blob_config, circle_config, square_config]
+// levels
+LEVELS =
+{
+    'TRAINING':
+    {
+        name: 'Training',
+        make_scenes_fun: create_random_scenes_sequence,
+        evaluate_loss_condition: function(stats)
+        {
+            return {
+                has_lost: false
+            }
+        }
+    },
+
+    '0':{
+        name: 'Introduction',
+        make_scenes_fun: ()=> ['Circle', 'Circle', 'Circle'],
+        evaluate_loss_condition: function(stats)
+        {
+            var has_lost = _.some(stats, (x)=> x.score<0.8)
+            return {
+                has_lost: has_lost
+            }
+        }
+    }
+}
+
+
+
+
 const CONFIGS = [triangle_config, blob_config, circle_config, square_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
@@ -55,13 +84,15 @@ var GAME = new Phaser.Game(PHASER_CONFIG);
 
 class SessionManager
 {
-    constructor(scene_names) 
+    constructor(level) 
     {
-        console.log('constructing session manager');
-        this._scene_names = scene_names
+        console.log(`constructing session manager for ${level.name}`);
+        this._scene_names = level.make_scenes_fun()
         // we make sure all the scenes are initialized
         CONFIGS.forEach((config)=>this.initialize_scene(config.name))
+        // starting state is START
         this.state = 'START'
+        this.level_config = level;
     }
 
 
@@ -74,6 +105,14 @@ class SessionManager
                 return 'Menu'
             },
             'PLAY': function(this_) {
+                var stats = get_session_stats(this_.session_id)
+                var loss = this_.level_config.evaluate_loss_condition(stats);
+                if (loss.has_lost)
+                {
+                    this_.state='END'
+                    return 'End'
+                }
+
                 if (this_._scene_names.length==0)
                 {
                     this_.state='END'
@@ -129,7 +168,8 @@ class SessionManager
 
 }
 
-const get_firestore_stats_collection=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid).collection('stats')
+const get_firestore_user_ref=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid)
+const get_firestore_stats_collection=()=>get_firestore_user_ref().collection('stats')
 function remove_duplicates(stats)
 {
     var txt =`remove duplicates of ${stats.length}`
@@ -150,12 +190,30 @@ function get_firebase_stats_ref()
     return FIREBASE_APP.storage().ref().child(get_firebase_stats_path()) 
 }
 
+async function get_user_info()
+{
+    var data;
+    await get_firestore_user_ref().get().then(function(x)
+    {
+        data = x.data()
+    })
+    return data
+}
+
 function read_local_stats()
 {
     var data = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
     console.log(`${data.length} stat read from local storage`);
     return data;
 
+}
+
+function get_session_stats(session_id)
+{
+    console.time('local stats read');
+    var stats = read_local_stats()
+    console.timeEnd('local stats read');
+    return stats.filter((x)=>x.session_id==session_id)
 }
 
 async function get_firebase_stats_url()
@@ -256,6 +314,8 @@ async function sync_stats()
     //console.log('shrunk stats', stats)
     console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
 
+    // in case we have garbage
+    // stats = stats.filter((x)=> !_.isUndefined(x.session_id))
     // save it locally
     save_local_stats(stats);
     write_stat_firebase_storage(stats);
@@ -528,6 +588,7 @@ class Start extends Phaser.Scene {
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
                 sync_stats();
+                get_user_info()
 
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
@@ -569,13 +630,13 @@ class End extends Phaser.Scene {
         //this.stats_text.setText('WE ARE DONE\n[recap of performance]')
         this.stats_text.setText(make_status_string());
         var current_stats = read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id)
-        console.log(current_stats)
+        //console.log(current_stats)
         var list_text = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`).join('\n');
         this.help_text.setText(list_text)
         this.list_text.setText('We are done. Hit space bar to continue')
 
         //var =summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
-        //sync_stats();
+        sync_stats();
         this.input.keyboard.on('keydown_SPACE', function (event)
         {
             this.scene.start(SESSION_MANAGER.next_scene_name());
@@ -599,14 +660,18 @@ class Menu extends Phaser.Scene {
         this.stats_text.setText( 'MENU! \nHit Space Bar to start');
         var scene = this;
         const M = Phaser.Input.Keyboard.KeyCodes;
-        var key2seqfun = {}
-        key2seqfun[M['SPACE']] =  create_random_scenes_sequence;
-        key2seqfun[M['H']] =  ()=>['Circle','Circle'];
+        var key2level = {
+            'SPACE': 'TRAINING',
+            'H': '0'}
+        var code2level = {}
+        Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
+        this.help_text.setText(Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${x[1]}`).join('\n'))
+
         scene.input.keyboard.on('keydown', function (event)
         {
-            if(event.keyCode in key2seqfun)
+            if(event.keyCode in code2level)
             {
-                SESSION_MANAGER = new SessionManager(key2seqfun[event.keyCode]());
+                SESSION_MANAGER = new SessionManager(LEVELS[code2level[event.keyCode]])
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
             }
 
@@ -631,6 +696,8 @@ function get_display_name()
     return `${display_name} [${provider_id}]`;
 
 }
+
+
 
 var SESSION_MANAGER;
 
