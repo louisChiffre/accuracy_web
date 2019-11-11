@@ -192,9 +192,10 @@ function get_firebase_stats_ref()
 
 async function get_user_info()
 {
-    var data;
-    await get_firestore_user_ref().get().then(function(x)
+    var data= await get_firestore_user_ref().get().then(function(x)
     {
+        console.log(`got in wit ${x.data()}`)
+        console.log(x.data())
         data = x.data()
     })
     return data
@@ -216,20 +217,6 @@ function get_session_stats(session_id)
     return stats.filter((x)=>x.session_id==session_id)
 }
 
-async function get_firebase_stats_url()
-{
-    var url = await get_firebase_stats_ref().getDownloadURL().catch(function(error) {
-        if (error.code == 'storage/object-not-found')
-        {
-            console.log('no stats available');
-            return '' 
-        }
-
-      }
-    );
-    return url
-}
-
 function save_local_stats(stats)
 {
     console.log(`saving ${stats.length} points to local store`)
@@ -248,77 +235,74 @@ function save_stat_firestore(stat)
     });
 }
 
-async function read_stat_firestore()
+function read_stat_firestore()
 {
     console.time('retrieving data from firestore');
-    const data = [];
-    var ref = await get_firestore_stats_collection().get().then( function(querySnapshot) {
+    return get_firestore_stats_collection().get().then( function(querySnapshot) {
+        if (querySnapshot.empty)
+        {
+            return []
+        }
+        const data = [];
         querySnapshot.forEach(function(doc) {
             data.push(doc.data());
+        console.timeEnd('retrieving data from firestore')
+        console.log(`${data.length} stat read from firestore`);
+        return data
         })})
-    console.timeEnd('retrieving data from firestore')
-    console.log(`${data.length} stat read from firestore`);
-    return data;
 }
 
-async function read_stat_firebase_storage()
+function read_stat_firebase_storage()
 {
     // CORS configuration needs to be done see https://firebase.google.com/docs/storage/web/download-files
-    console.time('stats firebase read');
-    const url = await get_firebase_stats_url()
-    if (url=='')
-    {
-        console.log('no stats available');
-        return[];
-    }
-    const response = await fetch(url).then(function(response) {
-        if (!response.ok) {
-            throw Error(response.statusText);
-        }
-        return response;
-    }).catch(function(error) {
-        console.log(error);
-    });
-
-    var data = []
-    const promise = await response.text()
+    console.time('stats firebase storage read');
+    return get_firebase_stats_ref().getDownloadURL()
+        .then((url)=>fetch(url))
+        .then(response=>response.text())
         .then(function(text){
-            data = JSON.parse(LZString.decompressFromBase64(text));})
+            data = JSON.parse(LZString.decompressFromBase64(text));
+            console.log(`${data.length} stat read from firebase storage`);
+            console.timeEnd('stats firebase storage read');
+            return data
+            })
         .catch(function(error) {
+            if (error.code == 'storage/object-not-found')
+            {
+                console.log('no stats available');
+                return [] 
+            }
             console.log(error);
+            console.timeEnd('stats firebase storage read');
+            return []
         });
-    console.log(data)
-    console.timeEnd('stats firebase read');
-    console.log(`${data.length} stat read from firebase storage`);
-    return data;
 }
 
-async function write_stat_firebase_storage(stats)
+function write_stat_firebase_storage(stats)
 {
     console.time('upload stats to remote file')
-    get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats))).then(function(snapshot) { console.timeEnd('upload stats to remote file')})
+    return get_firebase_stats_ref().putString(LZString.compressToBase64(JSON.stringify(stats)))
+        .then(function(snapshot) { console.timeEnd('upload stats to remote file')})
+        .catch(function(error) {
+            console.log(error);
+            console.timeEnd('upload stats to remote file')
+        });
 }
+
 
 async function sync_stats()
 {
+    console.time('sync stats')
     // read stats from local storage, cloud storage
     const local_stats = read_local_stats();
-    const db_stats = await read_stat_firestore();
-    const storage_stats = await read_stat_firebase_storage();
-    var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
-    //console.log('local stats',local_stats)
-    //console.log('db stats',db_stats)
-    //console.log('storage_stats',storage_stats)
-    var stats = remove_duplicates(combined_stats)
-    //console.log('combined_stats', combined_stats)
-    //console.log('shrunk stats', stats)
-    console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
 
-    // in case we have garbage
-    // stats = stats.filter((x)=> !_.isUndefined(x.session_id))
-    // save it locally
+    
+    const storage_stats = await read_stat_firebase_storage();
+    const db_stats = await read_stat_firestore();
+    var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
+    var stats = remove_duplicates(combined_stats)
+    console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
     save_local_stats(stats);
-    write_stat_firebase_storage(stats);
+    await write_stat_firebase_storage(stats);
 
 
     // then delete db records
@@ -332,6 +316,8 @@ async function sync_stats()
             console.log('error')
             console.log(error);
         });
+    console.timeEnd('sync stats')
+
 }
 
 function update_local_stats(stat)
@@ -588,8 +574,6 @@ class Start extends Phaser.Scene {
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
                 sync_stats();
-                get_user_info()
-
                 scene.input.keyboard.on('keydown_SPACE', function (event)
                 {
                     scene.scene.start('Menu')
@@ -597,6 +581,9 @@ class Start extends Phaser.Scene {
                 }, scene);
 
                 scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}. \nPRESS SPACE TO START`);
+                //console.log(`everything is done for user ${info}`)
+                //console.log(info)
+                 
 
             } else {
                 scene.stats_text.setText('LOGGED OUT. PLEASE LOG IN');
