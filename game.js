@@ -175,8 +175,10 @@ function remove_duplicates(stats)
     var txt =`remove duplicates of ${stats.length}`
     console.time(txt)
     // would prefer to use something pure es6
-    var result = _.uniqWith(stats, _.isEqual);
+    var result = _.uniqBy(stats, 'time');
+    result = result.filter((x)=> !(x==undefined)).filter((x)=> 'session_id' in x)
     console.timeEnd(txt);
+
     return result
 }
 
@@ -241,15 +243,15 @@ function read_stat_firestore()
     return get_firestore_stats_collection().get().then( function(querySnapshot) {
         if (querySnapshot.empty)
         {
+            console.timeEnd('retrieving data from firestore')
             return []
         }
         const data = [];
-        querySnapshot.forEach(function(doc) {
-            data.push(doc.data());
+        querySnapshot.forEach(function(doc) { data.push(doc.data())});
         console.timeEnd('retrieving data from firestore')
         console.log(`${data.length} stat read from firestore`);
         return data
-        })})
+        })
 }
 
 function read_stat_firebase_storage()
@@ -305,18 +307,22 @@ async function sync_stats()
     await write_stat_firebase_storage(stats);
 
 
-    // then delete db records
     var batch = FIREBASE_DB.batch();
     db_stats.forEach((stat)=> batch.delete(get_firestore_stats_collection().doc(stat.time.toString())))
-    var promise_end = await batch.commit().then(function(x){
-            console.log('firestore deletion done')
+    return await batch.commit().then(function(x){
+            console.log(`${db_stats.length} firestore deletion done`)
+            console.timeEnd('sync stats')
+            return stats
             }
             )
         .catch(function(error) {
             console.log('error')
             console.log(error);
+            console.timeEnd('sync stats')
+            return stats
+
         });
-    console.timeEnd('sync stats')
+
 
 }
 
@@ -573,14 +579,17 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
-                sync_stats();
-                scene.input.keyboard.on('keydown_SPACE', function (event)
+                scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}`)
+                sync_stats().then(function(stats)
                 {
-                    scene.scene.start('Menu')
+                    scene.stats_text.setText(`${stats.length} exercises loaded.\nPRESS SPACE TO START`)
+                    scene.input.keyboard.on('keydown_SPACE', function (event)
+                    {
+                        scene.scene.start('Menu')
 
-                }, scene);
+                    }, scene);
+                })
 
-                scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}. \nPRESS SPACE TO START`);
                 //console.log(`everything is done for user ${info}`)
                 //console.log(info)
                  
@@ -620,15 +629,21 @@ class End extends Phaser.Scene {
         //console.log(current_stats)
         var list_text = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`).join('\n');
         this.help_text.setText(list_text)
-        this.list_text.setText('We are done. Hit space bar to continue')
+        this.list_text.setText('Saving stats ..')
 
         //var =summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
-        sync_stats();
-        this.input.keyboard.on('keydown_SPACE', function (event)
+        var scene = this;
+        sync_stats().then(function(stats)
         {
-            this.scene.start(SESSION_MANAGER.next_scene_name());
+            scene.list_text.setText('We are done. Hit space bar to continue')
+            scene.input.keyboard.on('keydown_SPACE', function (event)
 
-        }, this);
+            {
+                this.scene.start(SESSION_MANAGER.next_scene_name());
+
+            }, scene);
+        })
+
 
     }
     update ()
