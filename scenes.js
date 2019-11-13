@@ -522,12 +522,12 @@ class EvaluateScene extends Phaser.Scene {
     {
         GRAPHICS.clear();
         GRAPHICS.save();
-        GRAPHICS.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        GRAPHICS.translateCanvas(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         this.data_.config.draw_evaluation(this.data_);
         GRAPHICS.restore();
 
         GRAPHICS.save();
-        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_reference(this.data_)
 
         GRAPHICS.fillStyle(0x000000, 0.7);
@@ -536,7 +536,7 @@ class EvaluateScene extends Phaser.Scene {
         GRAPHICS.restore();
 
         GRAPHICS.save();
-        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
         GRAPHICS.restore();
 
@@ -641,12 +641,12 @@ class InputScene extends Phaser.Scene {
         this.data_.config.process_cursors_input(this.cursors, this.data_);
 
         GRAPHICS.save();
-        GRAPHICS.translate(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        GRAPHICS.translateCanvas(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
         this.data_.config.draw_reference(this.data_)
         GRAPHICS.restore();
 
         GRAPHICS.save();
-        GRAPHICS.translate(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
         GRAPHICS.restore();
 
