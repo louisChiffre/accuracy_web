@@ -76,7 +76,10 @@ var PHASER_CONFIG = {
     pixelArt:true,
     audio: {
         disableWebAudio: true
-    }
+    },
+    dom: {
+        createContainer: true
+    },
 };
 
 var GRAPHICS;
@@ -192,15 +195,15 @@ function get_firebase_stats_ref()
     return FIREBASE_APP.storage().ref().child(get_firebase_stats_path()) 
 }
 
-async function get_user_info()
+function get_user_info()
 {
-    var data= await get_firestore_user_ref().get().then(function(x)
+    return get_firestore_user_ref().get().then(function(x)
     {
         console.log(`got in wit ${x.data()}`)
         console.log(x.data())
         data = x.data()
+        return data;
     })
-    return data
 }
 
 function read_local_stats()
@@ -543,7 +546,6 @@ function make_scene_setup(scene)
 
 
 }
-
 // Starting scene
 class Start extends Phaser.Scene {
     constructor(config) {
@@ -556,6 +558,7 @@ class Start extends Phaser.Scene {
         //this.load.audio('init', 'assets/snd/init.wav');
         //this.load.audio('init', 'assets/fx_mixdown.ogg')
         //console.log('done')
+        this.load.html('nameform', 'assets/nameform.html');
     }
 
     create(config)
@@ -580,9 +583,76 @@ class Start extends Phaser.Scene {
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
                 scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}`)
+
+                // see https://eloquentjavascript.net/2nd_edition/18_forms.html
+                // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
+                function read_input_name()
+                {
+                    return new Promise(function(succeed, fail)
+                    {
+                        var element = scene.add.dom(200, 100).createFromCache('nameform');
+                        element.addListener('click');
+                        element.on('click', function (event) {
+
+                            if (event.target.name === 'playButton')
+                            {
+                                var inputText = this.getChildByName('nameField');
+                                //  Have they entered anything?
+                                if (inputText.value !== '')
+                                {
+                                    //  Turn off the click events
+                                    this.removeListener('click');
+                                    //  Hide the login element
+                                    this.setVisible(false);
+                                    //  Populate the text with whatever they typed in
+                                    succeed(inputText.value);
+                                }
+                                else
+                                {
+                                    //  Flash the prompt
+                                    this.scene.tweens.add({
+                                        targets: this.scene.stats_text,
+                                        alpha: 0.2,
+                                        duration: 250,
+                                        ease: 'Power3',
+                                        yoyo: true
+                                    });
+                                            }
+                            }
+
+                        });                       
+
+                    }
+                        
+                    );
+
+                };
+
+                function set_user_name(name)
+                {
+                    return get_firestore_user_ref().update({name:name}).then(function(x)
+                    {
+                        return name;
+                    }
+                    )
+                }
+                var user_info = get_user_info().then((x)=> x.name||read_input_name().then(set_user_name))
+
+                user_info.then(x=>console.log('user name is ', x));
+
+
                 sync_stats().then(function(stats)
                 {
                     scene.stats_text.setText(`${stats.length} exercises loaded.\nPRESS SPACE TO START`)
+                    //  Flash the prompt
+                    //scene.tweens.add({
+                    //    targets: scene.stats_text,
+                    //    alpha: 0.2,
+                    //    duration: 1000,
+                    //    ease: 'Power3',
+                    //    yoyo: true,
+                    //    repeat:-1
+                    //})
                     scene.input.keyboard.on('keydown_SPACE', function (event)
                     {
                         scene.scene.start('Menu')
