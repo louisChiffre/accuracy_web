@@ -36,6 +36,8 @@ var FIREBASE_APP;
 var FIREBASE_USER;
 var FIREBASE_DB;
 
+var USER_INFO;
+
 
 var BORDER = 10;
 var WIDTH = 800;
@@ -586,8 +588,9 @@ class Start extends Phaser.Scene {
 
                 // see https://eloquentjavascript.net/2nd_edition/18_forms.html
                 // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
-                function read_input_name()
+                function read_input_name(user_info)
                 {
+                    console.log(user_info);
                     return new Promise(function(succeed, fail)
                     {
                         var element = scene.add.dom(200, 100).createFromCache('nameform');
@@ -605,7 +608,8 @@ class Start extends Phaser.Scene {
                                     //  Hide the login element
                                     this.setVisible(false);
                                     //  Populate the text with whatever they typed in
-                                    succeed(inputText.value);
+                                    user_info.name = inputText.value; 
+                                    succeed(user_info);
                                 }
                                 else
                                 {
@@ -628,41 +632,45 @@ class Start extends Phaser.Scene {
 
                 };
 
-                function set_user_name(name)
+                function update_user_info(user_info)
                 {
-                    return get_firestore_user_ref().update({name:name}).then(function(x)
-                    {
-                        return name;
-                    }
-                    )
+                    return get_firestore_user_ref().update(user_info).then((x)=>user_info)
                 }
-                var user_info = get_user_info().then((x)=> x.name||read_input_name().then(set_user_name))
 
-                user_info.then(x=>console.log('user name is ', x));
-
-
-                sync_stats().then(function(stats)
+                var user_info = get_user_info().then(function(x)
                 {
-                    scene.stats_text.setText(`${stats.length} exercises loaded.\nPRESS SPACE TO START`)
-                    //  Flash the prompt
-                    //scene.tweens.add({
-                    //    targets: scene.stats_text,
-                    //    alpha: 0.2,
-                    //    duration: 1000,
-                    //    ease: 'Power3',
-                    //    yoyo: true,
-                    //    repeat:-1
-                    //})
+                    if('name' in x)
+                    {
+                        return x
+                    }
+                    return read_input_name(x).then(update_user_info)
+                })
+                var stats = sync_stats()
+
+                Promise.all([user_info, stats]).then(function(objects)
+                {
+                    var user_info = objects[0] 
+                    var stats = objects[1]
+                    USER_INFO = user_info
+                    scene.name_text.setText(`Hello ${user_info.name}!`)
+                    scene.help_text.setText(`${stats.length} exercises loaded`)
+                    scene.stats_text.setText('PRESS SPACE TO START')
+                    scene.tweens.add({
+                        targets: scene.stats_text,
+                        alpha: 0.2,
+                        duration: 700,
+                        //ease: 'Power3',
+                        yoyo: true,
+                        repeat:-1
+                    });
+
                     scene.input.keyboard.on('keydown_SPACE', function (event)
                     {
                         scene.scene.start('Menu')
 
                     }, scene);
-                })
-
-                //console.log(`everything is done for user ${info}`)
-                //console.log(info)
-                 
+                }
+                )
 
             } else {
                 scene.stats_text.setText('LOGGED OUT. PLEASE LOG IN');
