@@ -4,8 +4,8 @@ LEVELS =
     'TRAINING':
     {
         name: 'Training',
-        key: 'training',
-        make_scenes_fun: create_random_scenes_sequence,
+        key: 'training4x3',
+        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
         evaluate_loss_condition: function(stats)
         {
             return {
@@ -542,18 +542,17 @@ function calc_score(textureManager, image)
     };
 }
 
-function create_random_scenes_sequence()
+function create_random_scenes_sequence(repetitions_per_game, scenes)
 {
-    var repetitions_per_game = 3;
     var random_scenes = [];
-    function add(config)
+    function add(name)
     {
         for(i=0;i<repetitions_per_game;i++)
         {
-            random_scenes.push(config.name)
+            random_scenes.push(name)
         }
     }
-    CONFIGS.forEach(add)
+    scenes.forEach(add)
     random_scenes = Phaser.Math.RND.shuffle(random_scenes);
     console.log('random scenes ', random_scenes)
     return random_scenes;
