@@ -4,6 +4,7 @@ LEVELS =
     'TRAINING':
     {
         name: 'Training',
+        key: 'training',
         make_scenes_fun: create_random_scenes_sequence,
         evaluate_loss_condition: function(stats)
         {
@@ -16,6 +17,7 @@ LEVELS =
     '0':{
         name: 'Introduction',
         make_scenes_fun: ()=> ['Circle', 'Circle', 'Circle'],
+        key: 'circle',
         evaluate_loss_condition: function(stats)
         {
             var has_lost = _.some(stats, (x)=> x.score<0.8)
@@ -64,7 +66,16 @@ var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
 var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 
 
-const make_session_id = ()=>Date.now()
+const make_session_id = (key)=>`${Date.now()}__${key}`
+
+function extract_regex_from_session_id(session_id)
+{
+    var x = session_id.split('__')
+    if (x.length==1)
+        return /\d$/
+    return new RegExp(`__${x[1]}`)
+
+}
 
 var TEXT_HEIGHT = 15
 
@@ -130,7 +141,7 @@ class SessionManager
             },
 
             'START': function(this_){
-                this_._session_id =make_session_id();
+                this_._session_id =make_session_id(this_.level_config.key);
                 console.log(`session_id ${this_._session_id}`)
                 update_time_filters(this_._session_id);
                 this_.scenes_count = this_._scene_names.length
@@ -167,11 +178,8 @@ class SessionManager
     {
         return this._session_id
     }
-
-
-
-
 }
+
 
 const get_firestore_user_ref=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid)
 const get_firestore_stats_collection=()=>get_firestore_user_ref().collection('stats')
@@ -186,6 +194,8 @@ function remove_duplicates(stats)
 
     return result
 }
+
+
 
 function get_firebase_stats_path()
 {
@@ -307,6 +317,11 @@ async function sync_stats()
     const db_stats = await read_stat_firestore();
     var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
     var stats = remove_duplicates(combined_stats)
+
+    //var stats_pairs = _.partition(stats, (x)=>_.isInteger(x.session_id))
+    //var stats_ = stats_pairs[0].map((x)=>_.assign(x,{'session_id':`${x.session_id}__training`}))
+    //stats = stats_pairs[1].concat(stats_)
+
     console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
     save_local_stats(stats);
     await write_stat_firebase_storage(stats);
@@ -338,6 +353,18 @@ function update_local_stats(stat)
     save_local_stats(stats);
     return stats
 }
+function calculate_stats(stats)
+{
+    var scores =stats.map(x=>x.score);
+    return {
+            'time': Math.max(...stats.map(x=>x.time)),
+            'median':median(scores),
+            'mean': Phaser.Math.Average(scores),
+            'size': stats.length
+    }
+
+}
+
 
 function calculate_stats_summary(stats)
 {
@@ -351,19 +378,50 @@ function calculate_stats_summary(stats)
     //then for each bucket we compute the actual stats
     var s={};
     Object.keys(m).forEach(
-        k=>s[k]={
-            'median':median(m[k].map(x=>x.score)),
-            'size': m[k].length
-            }
+        k=>s[k]=calculate_stats(m[k])
     )
     return s;
 }
 
-function make_score_table(stats)
+function array2maparray(array, field)
 {
-    //debugger
+    const reducer = (accumulator, current_value) => 
+    {
+        var key = current_value[field]
+        if (!(key in accumulator))
+        {
+            accumulator[key] = [current_value]
+        }
+        else
+        {
+            accumulator[key].push(current_value)
+        }
+        return accumulator
 
+    }
+   return array.reduce(reducer, {})
+}
 
+function make_sorted_sessions(stats)
+{
+    m = array2maparray(stats, 'session_id');
+    sessions = _.chain(m)
+        .mapValues((x,v) => _.assign(calculate_stats(x), {'session_id': v} ))
+        .orderBy('mean','desc').value()
+    sessions.forEach((x,i)=>{x['rank']=i+1})
+    return sessions
+}
+
+function rank_sessions(stats, session_id)
+{
+    //.pickBy((value,key)=> value.length>=10)
+    //sessions = make_sorted_sessions(stats)
+    //rank = _.findIndex(sessions, {'key':session_id})
+    var reg=extract_regex_from_session_id(session_id);
+    console.assert(reg.test(session_id))
+    var sessions = _.chain(stats).filter((x)=>reg.test(x.session_id)).thru(make_sorted_sessions).value()
+    rank = _.findIndex(sessions, {'session_id':session_id})
+    return {rank:rank, sessions:sessions}
 }
 
 
@@ -519,9 +577,11 @@ function make_status_string()
 function make_scene_setup(scene)
 {
     GRAPHICS = scene.add.graphics();
+
     scene.stats_text = scene.add.text(
         STATS_ORIGIN.x, 
         STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
+
     scene.score_text = scene.add.text(
         SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
         .setFontSize(64)
@@ -536,7 +596,6 @@ function make_scene_setup(scene)
     scene.name_text = scene.add.text(
         PLAYER_NAME_ORIGIN.x, 
         PLAYER_NAME_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY);
-
     scene.help_text = scene.add.text(
         HELP_ORIGIN.x, 
         HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
@@ -703,12 +762,27 @@ class End extends Phaser.Scene {
         make_scene_setup(this);
         //this.stats_text.setText('WE ARE DONE\n[recap of performance]')
         this.stats_text.setText(make_status_string());
-        var current_stats = read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id)
+        var all_stats=read_local_stats()
+        var session_id = SESSION_MANAGER._session_id
+        var current_stats = all_stats.filter((x)=> x.session_id == session_id)
         //console.log(current_stats)
-        var list_text = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`).join('\n');
-        this.help_text.setText(list_text)
         this.list_text.setText('Saving stats ..')
+        
+        var result = rank_sessions(all_stats, session_id);
+        var highscore_text = _.take(result.sessions,10).map(x=> [
+            `${x.rank.toFixed(0)}.  `.padStart(4),
+            `${(x.mean*100).toFixed(1)}`.padEnd(6), 
+            moment(new Date(x.time)).fromNow()
+        ].join('')).join('\n')
+        this.score_text.setFontSize(DEFAULT_FONT_SIZE).setText(highscore_text)
 
+        var session_stat = result.sessions[result.rank]
+        var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
+        list_strings.push(`--------------`)
+        list_strings.push(`${'Average'.padEnd(10)} ${(100*session_stat.mean).toFixed(1)}`)
+        var list_text = list_strings.join('\n');
+        this.help_text.setText(list_text)
+        
         //var =summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
         var scene = this;
         sync_stats().then(function(stats)
@@ -737,7 +811,6 @@ class Menu extends Phaser.Scene {
     create(config)
     {
         make_scene_setup(this);
-        this.stats_text.setText( 'MENU! \nHit Space Bar to start');
         var scene = this;
         const M = Phaser.Input.Keyboard.KeyCodes;
         var key2level = {
@@ -745,7 +818,8 @@ class Menu extends Phaser.Scene {
             'H': '0'}
         var code2level = {}
         Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
-        this.help_text.setText(Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${x[1]}`).join('\n'))
+        var text = Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${x[1]}`).join('\n')
+        this.stats_text.setText( `Select one level\n${text}`);
 
         scene.input.keyboard.on('keydown', function (event)
         {
