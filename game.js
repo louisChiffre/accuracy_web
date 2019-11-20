@@ -1,4 +1,20 @@
+let repeat = (x,n) => Array.from(Array(n).keys()).map(i=>x)
 // levels
+
+stop_if_too_bad = function(stats)
+{
+    var has_lost = _.some(stats, (x)=> x.score<0.8)
+    return {
+        has_lost: has_lost
+    }
+}
+never =  function(stats)
+{
+            return {
+                has_lost: false
+            }
+}
+
 LEVELS =
 {
     'TRAINING':
@@ -6,26 +22,22 @@ LEVELS =
         name: 'Training',
         key: 'training4x3',
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
-        evaluate_loss_condition: function(stats)
-        {
-            return {
-                has_lost: false
-            }
-        }
+        evaluate_loss_condition:  never
     },
 
-    '0':{
+    'CIRCLE':{
         name: 'Introduction',
-        make_scenes_fun: ()=> ['Circle', 'Circle', 'Circle'],
-        key: 'circle',
-        evaluate_loss_condition: function(stats)
-        {
-            var has_lost = _.some(stats, (x)=> x.score<0.8)
-            return {
-                has_lost: has_lost
-            }
-        }
-    }
+        make_scenes_fun: ()=> repeat('Circle',12),
+        key: 'circlex12',
+        evaluate_loss_condition: stop_if_too_bad
+    },
+    'SQUARE':{
+        name: 'Introduction',
+        make_scenes_fun: ()=> repeat('Square',12),
+        key: 'squarex12',
+        evaluate_loss_condition: stop_if_too_bad 
+    },
+
 }
 
 
@@ -318,6 +330,7 @@ async function sync_stats()
     var combined_stats = Array.prototype.concat(db_stats, storage_stats, local_stats);
     var stats = remove_duplicates(combined_stats)
 
+    m = array2maparray(stats, 'session_id');
     //var stats_pairs = _.partition(stats, (x)=>_.isInteger(x.session_id))
     //var stats_ = stats_pairs[0].map((x)=>_.assign(x,{'session_id':`${x.session_id}__training`}))
     //stats = stats_pairs[1].concat(stats_)
@@ -814,7 +827,9 @@ class Menu extends Phaser.Scene {
         const M = Phaser.Input.Keyboard.KeyCodes;
         var key2level = {
             'SPACE': 'TRAINING',
-            'H': '0'}
+            'H': 'SQUARE',
+            'O': 'CIRCLE',
+            }
         var code2level = {}
         Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
         var text = Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${x[1]}`).join('\n')
