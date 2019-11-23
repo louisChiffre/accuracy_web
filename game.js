@@ -24,15 +24,28 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
+    'TRIANGLE':{
+        name: 'Triangle x 12',
+        make_scenes_fun: ()=> repeat('Triangle',12),
+        key: 'trianglex12',
+        evaluate_loss_condition: stop_if_too_bad
+    },
+
+    'POLYGON':{
+        name: 'Polygon x 6',
+        make_scenes_fun: ()=> repeat('Blob',6),
+        key: 'polygonx6',
+        evaluate_loss_condition: stop_if_too_bad
+    },
 
     'CIRCLE':{
-        name: 'Introduction',
+        name: 'Circle x 12',
         make_scenes_fun: ()=> repeat('Circle',12),
         key: 'circlex12',
         evaluate_loss_condition: stop_if_too_bad
     },
     'SQUARE':{
-        name: 'Introduction',
+        name: 'Square x 12',
         make_scenes_fun: ()=> repeat('Square',12),
         key: 'squarex12',
         evaluate_loss_condition: stop_if_too_bad 
@@ -588,6 +601,7 @@ function make_status_string()
 
 function make_scene_setup(scene)
 {
+    console.time('scene setup')
     GRAPHICS = scene.add.graphics();
 
     scene.stats_text = scene.add.text(
@@ -616,6 +630,7 @@ function make_scene_setup(scene)
         this.scene.start('Menu');
 
     }, scene);
+    console.timeEnd('scene setup')
 
 
 }
@@ -825,14 +840,14 @@ class Menu extends Phaser.Scene {
         make_scene_setup(this);
         var scene = this;
         const M = Phaser.Input.Keyboard.KeyCodes;
-        var key2level = {
-            'SPACE': 'TRAINING',
-            'H': 'SQUARE',
-            'O': 'CIRCLE',
-            }
+        var KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO']
+        var key2level = {}
+        Object.keys(LEVELS).forEach(
+            (x,index)=>{key2level[KEY_NAMES[index]]=x})
+
         var code2level = {}
         Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
-        var text = Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${x[1]}`).join('\n')
+        var text = Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${LEVELS[x[1]].name}`).join('\n')
         this.stats_text.setText( `Select one level\n${text}`);
 
         scene.input.keyboard.on('keydown', function (event)
