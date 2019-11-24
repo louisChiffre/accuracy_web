@@ -238,7 +238,7 @@ function get_user_info()
     {
         console.log(`got in wit ${x.data()}`)
         console.log(x.data())
-        data = x.data()
+        data = x.data()||{}
         return data;
     })
 }
@@ -868,6 +868,10 @@ class Menu extends Phaser.Scene {
 
 function get_display_name()
 {
+    if(FIREBASE_USER.isAnonymous)
+    {
+        return 'anonymous'
+    }
     var provider_id = FIREBASE_USER.providerData[0].providerId;
 
     providerId2name = {
