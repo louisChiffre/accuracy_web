@@ -295,8 +295,11 @@ var circle_config = {
     'make_reference': function(){
         return make_random_circle(LENGTH);
     },
-    'make_player': function() {
-        return make_random_circle(LENGTH);
+    'make_data': function(){
+        return {
+            'player': make_random_circle(LENGTH),
+            'reference': make_random_circle(LENGTH),
+        }
     },
     'draw_reference': function(data)
     {
@@ -458,11 +461,12 @@ var square_config = {
     'name': 'Square',
     'eval_name': 'EvalSquare',
     'control_help_instructions': ['Use cursor to control edge of rectangle'],
-    'make_reference': function(){
-        return make_random_square(50, LENGTH, 50, LENGTH);
-    },
-    'make_player': function() {
-        return make_random_square(50, LENGTH, 50, LENGTH);
+    'make_data': function()
+    {
+        return {
+            'reference' : make_random_square(50, LENGTH, 50, LENGTH),
+            'player' : make_random_square(50, LENGTH, 50, LENGTH),
+        };
     },
     'draw_reference': function(data)
     {
@@ -620,17 +624,7 @@ class InputScene extends Phaser.Scene {
         console.log('starting scene %s', config.name)
         make_scene_setup(this);
 
-        if ('make_data' in config)
-        {
-            this.data_ = config.make_data(this.cache);
-        }
-        else
-        {
-            this.data_ = {
-                'reference' :config.make_reference() ,
-                'player' :config.make_player(),
-            };
-        }
+        this.data_ = config.make_data(this.cache);
 
         this.data_.config = config;
         this.name_text.setText(get_display_name())
