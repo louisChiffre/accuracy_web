@@ -394,7 +394,64 @@ var triangle_config = {
 
 
 };
+const PROPORTION_SCALE=2.0;
+var proportion_config = {
+    'inputs': {},
+    'name': 'Proportion',
+    'eval_name': 'EvalProportion',
+    'control_help_instructions': ['Use cursor to control edge of rectangle'],
+    'make_data': function(cache)
+    {
+        var min_width = 50; 
+        var scale = PROPORTION_SCALE;
+        var ref = make_random_square(min_width, LENGTH/scale, min_width, LENGTH/scale);
+        var player = new Phaser.Geom.Rectangle(0, 0, ref.width*scale, 100);
+        return {
+            'player' : player, 
+            'reference': ref,
+        };
+    },
+    'draw_reference': function(data)
+    {
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokeRectShape(data.reference);
+    },
 
+    'draw_player': function(data)
+    {
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokeRectShape(data.player);
+    },
+
+    'draw_evaluation': function(data)
+    {
+        var scale = PROPORTION_SCALE;
+        var scaled_reference = new Phaser.Geom.Rectangle(0, 0, data.reference.width*scale, data.reference.height*scale);
+        GRAPHICS.fillStyle(GREEN, 0.3);
+        GRAPHICS.fillRectShape(scaled_reference);
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillRectShape(data.player);
+    },
+
+
+    'process_cursors_input': function(cursors, data)
+    {
+        if (cursors.shift.isDown)
+            SPEED=10;
+        else
+            SPEED=1; 
+        if (cursors.up.isDown)    data.player.height +=   -SPEED
+        if (cursors.down.isDown)  data.player.height +=    SPEED
+
+    },
+
+    'pointermove': function(pointer, data)
+    {
+        var position =get_player_relative_position(pointer);
+        data.player.height = position.y
+    },
+
+}
 
 var square_config = {
     'inputs': {},

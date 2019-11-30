@@ -24,6 +24,13 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
+    'PROPORTION':{
+        name: 'Proportion x 3',
+        make_scenes_fun: ()=> repeat('Proportion',3),
+        key: 'proportionx3',
+        evaluate_loss_condition: stop_if_too_bad
+    },
+
     'TRIANGLE':{
         name: 'Triangle x 12',
         make_scenes_fun: ()=> repeat('Triangle',12),
@@ -56,7 +63,7 @@ LEVELS =
 
 
 
-const CONFIGS = [triangle_config, blob_config, circle_config, square_config]
+const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
@@ -354,6 +361,10 @@ async function sync_stats()
 
 
     var batch = FIREBASE_DB.batch();
+    if (db_stats.length==0)
+    {
+        return stats
+    }
     db_stats.forEach((stat)=> batch.delete(get_firestore_stats_collection().doc(stat.time.toString())))
     return await batch.commit().then(function(x){
             console.log(`${db_stats.length} firestore deletion done`)
