@@ -397,7 +397,6 @@ var triangle_config = {
 
 
 };
-const PROPORTION_SCALE=2.0;
 var proportion_config = {
     'inputs': {},
     'name': 'Proportion',
@@ -406,18 +405,27 @@ var proportion_config = {
     'make_data': function(cache)
     {
         var min_width = 50; 
-        var scale = PROPORTION_SCALE;
+        var scale = Phaser.Math.Between(2.0, 3.0);  
         var ref = make_random_square(min_width, LENGTH/scale, min_width, LENGTH/scale);
         var player = new Phaser.Geom.Rectangle(0, 0, ref.width*scale, 100);
         return {
             'player' : player, 
             'reference': ref,
+            'scale': scale,
         };
     },
     'draw_reference': function(data)
     {
         GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
         GRAPHICS.strokeRectShape(data.reference);
+    },
+
+    'draw_reference_evaluation': function(data)
+    {
+        var scale = data.scale;
+        var scaled_reference = new Phaser.Geom.Rectangle(0, 0, data.reference.width*scale, data.reference.height*scale);
+        GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+        GRAPHICS.strokeRectShape(scaled_reference);
     },
 
     'draw_player': function(data)
@@ -428,12 +436,12 @@ var proportion_config = {
 
     'draw_evaluation': function(data)
     {
-        var scale = PROPORTION_SCALE;
-        var scaled_reference = new Phaser.Geom.Rectangle(0, 0, data.reference.width*scale, data.reference.height*scale);
+        var scale = 1.0/data.scale;
+        var scaled_player = new Phaser.Geom.Rectangle(0, 0, data.player.width*scale, data.player.height*scale);
         GRAPHICS.fillStyle(GREEN, 0.3);
-        GRAPHICS.fillRectShape(scaled_reference);
+        GRAPHICS.fillRectShape(data.reference);
         GRAPHICS.fillStyle(RED, 0.3);
-        GRAPHICS.fillRectShape(data.player);
+        GRAPHICS.fillRectShape(scaled_player);
     },
 
 
@@ -587,13 +595,14 @@ class EvaluateScene extends Phaser.Scene {
         this.data_.config.draw_evaluation(this.data_);
         GRAPHICS.restore();
 
+        // we copy the reference on the player canvas
         GRAPHICS.save();
         GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        this.data_.config.draw_reference(this.data_)
+        // if we have specified a draw reference evaluation we use it otherwise we use the standard function
+        (this.data_.config.draw_reference_evaluation||this.data_.config.draw_reference)(this.data_)
 
         GRAPHICS.fillStyle(0x000000, 0.7);
         GRAPHICS.fillRectShape(this.blinder);
-
         GRAPHICS.restore();
 
         GRAPHICS.save();
