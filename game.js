@@ -17,6 +17,15 @@ never =  function(stats)
 
 LEVELS =
 {
+    /*
+    'DEV':
+    {
+        name: 'Dev',
+        key: 'dev',
+        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Quad']),
+        evaluate_loss_condition:  never
+    },*/
+
     'TRAINING':
     {
         name: 'Training',
@@ -24,6 +33,14 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
+    'QUAD':{
+        name: 'Quad x 12',
+        make_scenes_fun: ()=> repeat('Quad',12),
+        key: 'quadx12',
+        evaluate_loss_condition:  never
+        //evaluate_loss_condition: stop_if_too_bad
+    },
+
     'PROPORTION':{
         name: 'Proportion x 12',
         make_scenes_fun: ()=> repeat('Proportion',12),
@@ -63,7 +80,7 @@ LEVELS =
 
 
 
-const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config]
+const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config, free_config, quad_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;

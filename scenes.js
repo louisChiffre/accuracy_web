@@ -222,7 +222,6 @@ function pointerdown(pointer, data, scene)
 }
 
 
-
 var blob_config = {
     'name': 'Blob',
     'eval_name': 'EvalBlob',
@@ -256,6 +255,36 @@ var blob_config = {
     'inputs': {},
 }
 
+var quad_config = {
+    name: 'Quad',
+    eval_name: 'EvalQuad',
+    make_data: function(cache)
+    {
+        const f = Phaser.Math.Between
+        var L = LENGTH;
+        var L2 = LENGTH/2;
+        var points = [
+            f(0,L2), f(0,L2),
+            f(L2,L), f(0,L2),
+            f(L2,L), f(L2,L),
+            f(0,L2), f(L2,L),
+        ];
+        points =points.concat(points.slice(0,2));
+        var reference = new Phaser.Geom.Polygon(points);
+        var player = {
+            polygon:new Phaser.Geom.Polygon([]),
+            square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
+            pointer: 0,
+            done: false};
+
+        return {
+            'reference' :reference,
+            'player' :player
+        };
+    },
+}
+
+var quad_config = {...blob_config, ...quad_config}
 
 
 var free_config = {
