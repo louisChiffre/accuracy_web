@@ -583,7 +583,7 @@ class EvaluateScene extends Phaser.Scene {
             scene.score_text.setText((1000*score).toFixed(0));
             
         });
-        this.blinder = new Phaser.Geom.Rectangle(-10, -10, LENGTH+10, LENGTH+10);
+        this.blinder = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
 
     }
 
