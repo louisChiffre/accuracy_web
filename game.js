@@ -624,6 +624,7 @@ function make_scene_setup(scene)
         .setFontSize(64)
         .setFontStyle('bold')
         .setFontFamily(FONT_FAMILY);
+
     scene.list_text = scene.add.text(
         PLAYER_ORIGIN.x, PLAYER_ORIGIN.y, '')
         .setFontSize(DEFAULT_FONT_SIZE)
@@ -633,6 +634,7 @@ function make_scene_setup(scene)
     scene.name_text = scene.add.text(
         PLAYER_NAME_ORIGIN.x, 
         PLAYER_NAME_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY);
+
     scene.help_text = scene.add.text(
         HELP_ORIGIN.x, 
         HELP_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
@@ -862,10 +864,9 @@ class Menu extends Phaser.Scene {
         var key2level = {}
         Object.keys(LEVELS).forEach(
             (x,index)=>{key2level[KEY_NAMES[index]]=x})
-
         var code2level = {}
         Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
-        var text = Object.entries(key2level).map((x) => `${x[0].padEnd(5)} --> ${LEVELS[x[1]].name}`).join('\n')
+        var text = Object.entries(key2level).map((x,i) => `${(i+1).toString().padStart(2)}. ${LEVELS[x[1]].name}`).join('\n')
         this.stats_text.setText( `Select one level\n${text}`);
 
         scene.input.keyboard.on('keydown', function (event)
