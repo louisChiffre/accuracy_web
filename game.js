@@ -731,7 +731,14 @@ class Start extends Phaser.Scene {
 
                 function update_user_info(user_info)
                 {
-                    return get_firestore_user_ref().update(user_info).then((x)=>user_info)
+                    return get_firestore_user_ref()
+                    .set(user_info,{merge: true})
+                        .then((x)=>user_info)
+                        .catch(function(error) {
+                            // The document probably doesn't exist.
+                            console.error("Error updating user info: ", error);
+                        });
+
                 }
 
                 var user_info = get_user_info().then(function(x)
