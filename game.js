@@ -29,8 +29,8 @@ LEVELS =
     'TRAINING':
     {
         name: 'Training',
-        key: 'training4x3',
-        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Triangle', 'Blob', 'Square', 'Circle']),
+        key: 'training5x3',
+        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Quad', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
     'QUAD':{
