@@ -155,7 +155,7 @@ function is_polygon_closed(data)
 
 }
 
-function pointermove(pointer, data)
+function freehand_pointermove(pointer, data)
 {
     if( (data.player.done==false) & has_point(data) )
     {
@@ -178,7 +178,7 @@ function pointermove(pointer, data)
 
 }
 
-function pointerdown(pointer, data, scene)
+function freehand_pointerdown(pointer, data, scene)
 {
     if (pointer.buttons==1) //4 is for the middle button
     {
@@ -212,7 +212,7 @@ function pointerdown(pointer, data, scene)
     }
 
 }
- function drag(pointer, gameObject, dragX, dragY)
+ function freehand_drag(pointer, gameObject, dragX, dragY)
 {
     gameObject.x = dragX;
     gameObject.y = dragY;
@@ -249,9 +249,9 @@ var blob_config = {
     'draw_player': draw_player ,
     'draw_evaluation': draw_evaluation,
     'process_cursors_input': process_cursors_input ,
-    'pointermove': pointermove,
-    'pointerdown': pointerdown,
-    'drag': drag,
+    'pointermove': freehand_pointermove,
+    'pointerdown': freehand_pointerdown,
+    'drag': freehand_drag,
     'inputs': {},
 }
 
@@ -309,9 +309,9 @@ var free_config = {
     'draw_player': draw_player ,
     'draw_evaluation': draw_evaluation,
     'process_cursors_input': process_cursors_input ,
-    'pointermove': pointermove,
-    'pointerdown': pointerdown,
-    'drag': drag,
+    'pointermove': freehand_pointermove,
+    'pointerdown': freehand_pointerdown,
+    'drag': freehand_drag,
     'inputs': {},
     'filepack': 'assets/pack_free',
 }
