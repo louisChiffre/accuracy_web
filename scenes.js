@@ -285,6 +285,10 @@ var quad_config = {
 }
 
 var quad_config = {...blob_config, ...quad_config}
+var quad_config_hard = {...blob_config, ...quad_config}
+delete quad_config_hard.drag
+quad_config_hard.name = 'QuadHard'
+quad_config_hard.eval_name = 'EvalQuadHard'
 
 
 var free_config = {

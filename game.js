@@ -40,6 +40,13 @@ LEVELS =
         evaluate_loss_condition:  never
         //evaluate_loss_condition: stop_if_too_bad
     },
+    'QUAD_HARD':{
+        name: 'Quad Hard x 12',
+        make_scenes_fun: ()=> repeat('QuadHard',12),
+        key: 'quad_hardx12',
+        evaluate_loss_condition:  never
+        //evaluate_loss_condition: stop_if_too_bad
+    },
 
     'PROPORTION':{
         name: 'Proportion x 12',
@@ -80,7 +87,7 @@ LEVELS =
 
 
 
-const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config, free_config, quad_config]
+const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config, free_config, quad_config, quad_config_hard]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
