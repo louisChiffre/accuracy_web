@@ -858,7 +858,7 @@ class End extends Phaser.Scene {
         var scene = this;
         sync_stats().then(function(stats)
         {
-            scene.list_text.setText('We are done. Hit space bar to continue')
+            scene.list_text.setText(`We are done. ${stats.length} exercises saved. Hit space bar to continue`)
             scene.input.keyboard.on('keydown_SPACE', function (event)
 
             {
