@@ -103,7 +103,7 @@ function get_player_relative_position(pointer)
     return new Phaser.Geom.Point(pointer.x - PLAYER_ORIGIN.x, pointer.y - PLAYER_ORIGIN.y);
 }
 
-function draw_reference(data)
+function draw_polygon_reference(data)
 {
     GRAPHICS.lineStyle(1, WHITE, 0.2);
     GRAPHICS.strokeRectShape(data.player.square);
@@ -111,7 +111,7 @@ function draw_reference(data)
     GRAPHICS.strokePoints(data.reference.points);
 }
 
-function draw_player(data)
+function draw_polygon_player(data)
 {
     GRAPHICS.lineStyle(1, WHITE, 0.2);
     GRAPHICS.strokeRectShape(data.player.square);
@@ -122,7 +122,7 @@ function draw_player(data)
     }
 }
 
- function draw_evaluation(data)
+ function draw_polygon_evaluation(data)
 {
     GRAPHICS.fillStyle(GREEN, 0.3);
     GRAPHICS.fillPoints(data.reference.points);
@@ -155,7 +155,7 @@ function is_polygon_closed(data)
 
 }
 
-function freehand_pointermove(pointer, data)
+function polygon_pointermove(pointer, data)
 {
     if( (data.player.done==false) & has_point(data) )
     {
@@ -178,7 +178,7 @@ function freehand_pointermove(pointer, data)
 
 }
 
-function freehand_pointerdown(pointer, data, scene)
+function polygon_pointerdown(pointer, data, scene)
 {
     if (pointer.buttons==1) //4 is for the middle button
     {
@@ -212,7 +212,7 @@ function freehand_pointerdown(pointer, data, scene)
     }
 
 }
- function freehand_drag(pointer, gameObject, dragX, dragY)
+ function polygon_drag(pointer, gameObject, dragX, dragY)
 {
     gameObject.x = dragX;
     gameObject.y = dragY;
@@ -245,13 +245,13 @@ var blob_config = {
             'player' :player
         };
     },
-    'draw_reference': draw_reference ,
-    'draw_player': draw_player ,
-    'draw_evaluation': draw_evaluation,
+    'draw_reference': draw_polygon_reference ,
+    'draw_player': draw_polygon_player ,
+    'draw_evaluation': draw_polygon_evaluation,
     'process_cursors_input': process_cursors_input ,
-    'pointermove': freehand_pointermove,
-    'pointerdown': freehand_pointerdown,
-    'drag': freehand_drag,
+    'pointermove': polygon_pointermove,
+    'pointerdown': polygon_pointerdown,
+    'drag': polygon_drag,
     'inputs': {},
 }
 
@@ -309,13 +309,13 @@ var free_config = {
             'player' :player
         };
     },
-    'draw_reference': draw_reference ,
-    'draw_player': draw_player ,
-    'draw_evaluation': draw_evaluation,
+    'draw_reference': draw_polygon_reference ,
+    'draw_player': draw_polygon_player ,
+    'draw_evaluation': draw_polygon_evaluation,
     'process_cursors_input': process_cursors_input ,
-    'pointermove': freehand_pointermove,
-    'pointerdown': freehand_pointerdown,
-    'drag': freehand_drag,
+    'pointermove': polygon_pointermove,
+    'pointerdown': polygon_pointerdown,
+    'drag': polygon_drag,
     'inputs': {},
     'filepack': 'assets/pack_free',
 }
