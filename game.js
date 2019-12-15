@@ -23,7 +23,7 @@ LEVELS =
         key: 'dev',
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['QuadSpace']),
         evaluate_loss_condition:  never
-    },*/
+    },
 
     'TRAINING':
     {

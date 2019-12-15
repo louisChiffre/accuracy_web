@@ -103,18 +103,22 @@ function get_player_relative_position(pointer)
     return new Phaser.Geom.Point(pointer.x - PLAYER_ORIGIN.x, pointer.y - PLAYER_ORIGIN.y);
 }
 
-function draw_polygon_reference(data)
+function draw_player_frame(data)
 {
     GRAPHICS.lineStyle(1, WHITE, 0.2);
     GRAPHICS.strokeRectShape(data.player.square);
+
+}
+
+function draw_polygon_reference(data)
+{
+    draw_player_frame(data)
     GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
     GRAPHICS.strokePoints(data.reference.points);
 }
 
-function draw_polygon_player(data)
+function draw_polygon_player_wo_frame(data)
 {
-    GRAPHICS.lineStyle(1, WHITE, 0.2);
-    GRAPHICS.strokeRectShape(data.player.square);
     if(has_point(data))
     {
         GRAPHICS.lineStyle(1, RED, 1.0);
@@ -122,7 +126,31 @@ function draw_polygon_player(data)
     }
 }
 
- function draw_polygon_evaluation(data)
+function draw_polygon_player(data)
+{
+    draw_player_frame(data)
+    if(has_point(data))
+    {
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokePoints(data.player.polygon.points);
+    }
+}
+
+function draw_polygon_player_centered(data)
+{
+    draw_player_frame(data)
+    if(has_point(data))
+    {
+        var player_points = data.player.polygon.points
+        var reference_points = data.reference.points
+        var points = align_player_points(player_points, reference_points)
+
+        GRAPHICS.lineStyle(1, RED, 1.0);
+        GRAPHICS.strokePoints(points);
+    }
+}
+
+function draw_polygon_evaluation(data)
 {
     GRAPHICS.fillStyle(GREEN, 0.3);
     GRAPHICS.fillPoints(data.reference.points);
@@ -131,6 +159,34 @@ function draw_polygon_player(data)
     {
         GRAPHICS.fillStyle(RED, 0.3);
         GRAPHICS.fillPoints(data.player.polygon.points);
+    }
+}
+function align_player_points(player_points, reference_points)
+{
+    var player_x = Phaser.Math.Average(player_points.map((x)=>x.x)) 
+    var player_y = Phaser.Math.Average(player_points.map((x)=>x.y))
+
+    var ref_x = Phaser.Math.Average(reference_points.map((x)=>x.x)) 
+    var ref_y = Phaser.Math.Average(reference_points.map((x)=>x.y)) 
+
+    var dx = ref_x - player_x
+    var dy = ref_y - player_y
+    return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
+}
+
+function draw_polygon_evaluation_centered(data)
+{
+    GRAPHICS.fillStyle(GREEN, 0.3);
+    GRAPHICS.fillPoints(data.reference.points);
+
+    if(has_point(data))
+    {
+        var player_points = data.player.polygon.points
+        var reference_points = data.reference.points
+        var points = align_player_points(player_points, reference_points)
+
+        GRAPHICS.fillStyle(RED, 0.3);
+        GRAPHICS.fillPoints(points);
     }
 }
 
@@ -296,6 +352,9 @@ quad_config_hard.eval_name = 'EvalQuadHard'
 var quad_space_config = {
     name: 'QuadSpace',
     eval_name: 'EvalQuadSpace',
+    'draw_evaluation': draw_polygon_evaluation_centered,
+    'draw_player_evaluation': draw_polygon_player_centered,
+    'draw_player': draw_polygon_player_wo_frame 
 }
 var quad_space_config = {...quad_config_hard, ...quad_space_config}
 
@@ -650,7 +709,7 @@ class EvaluateScene extends Phaser.Scene {
 
         GRAPHICS.save();
         GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        this.data_.config.draw_player(this.data_);
+        (this.data_.config.draw_player_evaluation||this.data_.config.draw_player)(this.data_)
         GRAPHICS.restore();
 
     }
