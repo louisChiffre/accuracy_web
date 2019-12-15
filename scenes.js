@@ -285,10 +285,20 @@ var quad_config = {
 }
 
 var quad_config = {...blob_config, ...quad_config}
+
+// we disable the ability to drag and drop points to create a new exercise
 var quad_config_hard = {...blob_config, ...quad_config}
 delete quad_config_hard.drag
 quad_config_hard.name = 'QuadHard'
 quad_config_hard.eval_name = 'EvalQuadHard'
+
+
+var quad_space_config = {
+    name: 'QuadSpace',
+    eval_name: 'EvalQuadSpace',
+}
+var quad_space_config = {...quad_config_hard, ...quad_space_config}
+
 
 
 var free_config = {
