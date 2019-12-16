@@ -21,7 +21,7 @@ LEVELS =
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['QuadSpace']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpace']),
         evaluate_loss_condition:  never
     },
 
@@ -32,6 +32,14 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Quad', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
+    'QUAD_WO_FRAME':{
+        name: 'Quad Without Framex 12',
+        make_scenes_fun: ()=> repeat('QuadSpace',12),
+        key: 'quad_wo_framex12',
+        evaluate_loss_condition:  never
+        //evaluate_loss_condition: stop_if_too_bad
+    },
+
     'QUAD':{
         name: 'Quad x 12',
         make_scenes_fun: ()=> repeat('Quad',12),
