@@ -139,14 +139,16 @@ function draw_polygon_player(data)
 function draw_polygon_player_centered(data)
 {
     draw_player_frame(data)
+
     if(has_point(data))
     {
-        var player_points = data.player.polygon.points
-        var reference_points = data.reference.points
+        var player_points = data.player.polygon.points.slice(0,4)
+        var reference_points = data.reference.points.slice(0,4)
         var points = align_player_points(player_points, reference_points)
 
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokePoints(points);
+
     }
 }
 
@@ -181,8 +183,8 @@ function draw_polygon_evaluation_centered(data)
 
     if(has_point(data))
     {
-        var player_points = data.player.polygon.points
-        var reference_points = data.reference.points
+        var player_points = data.player.polygon.points.slice(0,4)
+        var reference_points = data.reference.points.slice(0,4)
         var points = align_player_points(player_points, reference_points)
 
         GRAPHICS.fillStyle(RED, 0.3);
