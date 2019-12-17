@@ -142,8 +142,8 @@ function draw_polygon_player_centered(data)
 
     if(has_point(data))
     {
-        var player_points = data.player.polygon.points.slice(0,4)
-        var reference_points = data.reference.points.slice(0,4)
+        var player_points = data.player.polygon.points
+        var reference_points = data.reference.points
         var points = align_player_points(player_points, reference_points)
 
         GRAPHICS.lineStyle(1, RED, 1.0);
@@ -165,11 +165,11 @@ function draw_polygon_evaluation(data)
 }
 function align_player_points(player_points, reference_points)
 {
-    var player_x = Phaser.Math.Average(player_points.map((x)=>x.x)) 
-    var player_y = Phaser.Math.Average(player_points.map((x)=>x.y))
+    var player_x = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.x)) 
+    var player_y = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.y))
 
-    var ref_x = Phaser.Math.Average(reference_points.map((x)=>x.x)) 
-    var ref_y = Phaser.Math.Average(reference_points.map((x)=>x.y)) 
+    var ref_x = Phaser.Math.Average(reference_points.slice(0,4).map((x)=>x.x)) 
+    var ref_y = Phaser.Math.Average(reference_points.slice(0,4).map((x)=>x.y)) 
 
     var dx = ref_x - player_x
     var dy = ref_y - player_y
@@ -183,8 +183,8 @@ function draw_polygon_evaluation_centered(data)
 
     if(has_point(data))
     {
-        var player_points = data.player.polygon.points.slice(0,4)
-        var reference_points = data.reference.points.slice(0,4)
+        var player_points = data.player.polygon.points
+        var reference_points = data.reference.points
         var points = align_player_points(player_points, reference_points)
 
         GRAPHICS.fillStyle(RED, 0.3);
