@@ -136,16 +136,6 @@ function draw_polygon_player(data)
     }
 }
 
-function draw_polygon_reference_centered(data)
-{
-    var player_points = data.player.polygon.points
-    var reference_points = data.reference.points
-    var points = align_player_points(reference_points, player_points)
-
-    GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
-    GRAPHICS.strokePoints(points);
-}
-
 
 function draw_polygon_player_centered(data)
 {
@@ -385,12 +375,17 @@ var quad_space_config = {
     name: 'QuadSpace',
     eval_name: 'EvalQuadSpace',
     'draw_evaluation': draw_polygon_evaluation_centered,
-    //'draw_reference_evaluation': draw_polygon_reference_centered,
     'draw_player_evaluation': draw_polygon_player_centered,
     'draw_player': draw_polygon_player_wo_frame 
 }
-var quad_space_config = {...quad_config_hard, ...quad_space_config}
+quad_space_config = {...quad_config_hard, ...quad_space_config}
 
+var quad_space_config_w_corr = {
+    name: 'QuadSpaceWCorr',
+    eval_name: 'EvalQuadSpaceWCorr',
+    drag : polygon_drag
+}
+quad_space_config_w_corr = {...quad_space_config, ...quad_space_config_w_corr}
 
 
 var free_config = {

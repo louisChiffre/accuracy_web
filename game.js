@@ -21,7 +21,7 @@ LEVELS =
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpace']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpaceWCorr']),
         evaluate_loss_condition:  never
     },
 
@@ -32,8 +32,16 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Quad', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
+    'QUAD_WO_FRAME_W_COR':{
+        name: 'Quad Without Frame With Correction x 12',
+        make_scenes_fun: ()=> repeat('QuadSpaceWCorr',12),
+        key: 'quad_wo_frame_w_corrx12',
+        evaluate_loss_condition:  never
+        //evaluate_loss_condition: stop_if_too_bad
+    },
+
     'QUAD_WO_FRAME':{
-        name: 'Quad Without Framex 12',
+        name: 'Quad Without Frame x 12',
         make_scenes_fun: ()=> repeat('QuadSpace',12),
         key: 'quad_wo_framex12',
         evaluate_loss_condition:  never
@@ -94,7 +102,9 @@ LEVELS =
 
 
 
-const CONFIGS = [triangle_config, blob_config, circle_config, square_config, proportion_config, free_config, quad_config, quad_config_hard, quad_space_config]
+const CONFIGS = [
+    triangle_config, blob_config, circle_config, square_config, 
+    proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP;
