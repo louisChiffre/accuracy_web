@@ -136,6 +136,17 @@ function draw_polygon_player(data)
     }
 }
 
+function draw_polygon_reference_centered(data)
+{
+    var player_points = data.player.polygon.points
+    var reference_points = data.reference.points
+    var points = align_player_points(reference_points, player_points)
+
+    GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
+    GRAPHICS.strokePoints(points);
+}
+
+
 function draw_polygon_player_centered(data)
 {
     draw_player_frame(data)
@@ -152,6 +163,8 @@ function draw_polygon_player_centered(data)
     }
 }
 
+
+
 function draw_polygon_evaluation(data)
 {
     GRAPHICS.fillStyle(GREEN, 0.3);
@@ -163,7 +176,23 @@ function draw_polygon_evaluation(data)
         GRAPHICS.fillPoints(data.player.polygon.points);
     }
 }
+
+
 function align_player_points(player_points, reference_points)
+{
+    var distance = (p) => p.x**2 + p.y**2
+    var pl = _.minBy(player_points, distance)
+    var ref = _.minBy(reference_points, distance) 
+
+    var dx = ref.x - pl.x
+    var dy = ref.y - pl.y
+    return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
+}
+
+
+
+// not used be cause it average out difference
+function align_player_points_centroid(player_points, reference_points)
 {
     var player_x = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.x)) 
     var player_y = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.y))
@@ -175,6 +204,7 @@ function align_player_points(player_points, reference_points)
     var dy = ref_y - player_y
     return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
 }
+
 
 function draw_polygon_evaluation_centered(data)
 {
@@ -355,6 +385,7 @@ var quad_space_config = {
     name: 'QuadSpace',
     eval_name: 'EvalQuadSpace',
     'draw_evaluation': draw_polygon_evaluation_centered,
+    //'draw_reference_evaluation': draw_polygon_reference_centered,
     'draw_player_evaluation': draw_polygon_player_centered,
     'draw_player': draw_polygon_player_wo_frame 
 }
