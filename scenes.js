@@ -301,14 +301,14 @@ function polygon_pointerdown(pointer, data, scene)
 
 
 var blob_config = {
-    'name': 'Blob',
-    'eval_name': 'EvalBlob',
-    'control_help_instructions': [
+    name: 'Blob',
+    eval_name: 'EvalBlob',
+    control_help_instructions: [
         'Use mouse to control last point', 
         'Left-click to freeze current point', 
         'Click on the first point to close polygon', 
         'Once closed, single point can be dragged and dropped by holding left button'],
-    'make_data': function(cache)
+    make_data: function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
         var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
@@ -320,17 +320,17 @@ var blob_config = {
 
         return {
             'reference' :reference,
-            'player' :player
+            player :player
         };
     },
-    'draw_reference': draw_polygon_reference ,
-    'draw_player': draw_polygon_player ,
-    'draw_evaluation': draw_polygon_evaluation,
-    'process_cursors_input': process_cursors_input ,
-    'pointermove': polygon_pointermove,
-    'pointerdown': polygon_pointerdown,
-    'drag': polygon_drag,
-    'inputs': {},
+    draw_reference: draw_polygon_reference ,
+    draw_player: draw_polygon_player ,
+    draw_evaluation: draw_polygon_evaluation,
+    process_cursors_input: process_cursors_input ,
+    pointermove: polygon_pointermove,
+    pointerdown: polygon_pointerdown,
+    drag: polygon_drag,
+    inputs: {},
 }
 
 var quad_config = {
@@ -356,8 +356,8 @@ var quad_config = {
             done: false};
 
         return {
-            'reference' :reference,
-            'player' :player
+            reference :reference,
+            player :player
         };
     },
 }
@@ -374,9 +374,9 @@ quad_config_hard.eval_name = 'EvalQuadHard'
 var quad_space_config = {
     name: 'QuadSpace',
     eval_name: 'EvalQuadSpace',
-    'draw_evaluation': draw_polygon_evaluation_centered,
-    'draw_player_evaluation': draw_polygon_player_centered,
-    'draw_player': draw_polygon_player_wo_frame 
+    draw_evaluation: draw_polygon_evaluation_centered,
+    draw_player_evaluation: draw_polygon_player_centered,
+    draw_player: draw_polygon_player_wo_frame 
 }
 quad_space_config = {...quad_config_hard, ...quad_space_config}
 
@@ -389,9 +389,9 @@ quad_space_config_w_corr = {...quad_space_config, ...quad_space_config_w_corr}
 
 
 var free_config = {
-    'name': 'Free',
-    'eval_name': 'EvalFree',
-    'make_data': function(cache)
+    name: 'Free',
+    eval_name: 'EvalFree',
+    make_data: function(cache)
     {
         var points = cache.json.get('example').points;
         var reference = new Phaser.Geom.Polygon(points);
@@ -402,54 +402,54 @@ var free_config = {
             done: false};
 
         return {
-            'reference' :reference,
-            'player' :player
+            reference :reference,
+            player :player
         };
     },
-    'draw_reference': draw_polygon_reference ,
-    'draw_player': draw_polygon_player ,
-    'draw_evaluation': draw_polygon_evaluation,
-    'process_cursors_input': process_cursors_input ,
-    'pointermove': polygon_pointermove,
-    'pointerdown': polygon_pointerdown,
-    'drag': polygon_drag,
-    'inputs': {},
-    'filepack': 'assets/pack_free',
+    draw_reference: draw_polygon_reference ,
+    draw_player: draw_polygon_player ,
+    draw_evaluation: draw_polygon_evaluation,
+    process_cursors_input: process_cursors_input ,
+    pointermove: polygon_pointermove,
+    pointerdown: polygon_pointerdown,
+    drag: polygon_drag,
+    inputs: {},
+    filepack: 'assets/pack_free',
 }
 
 var circle_config = {
-    'inputs': {},
-    'name': 'Circle',
-    'eval_name': 'EvalCircle',
-    'control_help_instructions': ['Use mouse pointer to control radius of circle'],
-    'make_reference': function(){
+    inputs: {},
+    name: 'Circle',
+    eval_name: 'EvalCircle',
+    control_help_instructions: ['Use mouse pointer to control radius of circle'],
+    make_reference: function(){
         return make_random_circle(LENGTH);
     },
-    'make_data': function(){
+    make_data: function(){
         return {
-            'player': make_random_circle(LENGTH),
-            'reference': make_random_circle(LENGTH),
+            player: make_random_circle(LENGTH),
+            reference: make_random_circle(LENGTH),
         }
     },
-    'draw_reference': function(data)
+    draw_reference: function(data)
     {
         GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
         GRAPHICS.strokeCircleShape(data.reference);
     },
-    'draw_player': function(data)
+    draw_player: function(data)
     {
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokeCircleShape(data.player);
     },
 
-    'draw_evaluation': function(data)
+    draw_evaluation: function(data)
     {
         GRAPHICS.fillStyle(GREEN, 0.3);
         GRAPHICS.fillCircleShape(data.reference);
         GRAPHICS.fillStyle(RED, 0.3);
         GRAPHICS.fillCircleShape(data.player);
     },
-    'process_cursors_input': function(cursors, data)
+    process_cursors_input: function(cursors, data)
     {
         if (cursors.shift.isDown)
             SPEED=5;
@@ -461,7 +461,7 @@ var circle_config = {
         if (cursors.right.isDown) data.player.radius +=  SPEED
 
     },
-    'pointermove': function(pointer, data)
+    pointermove: function(pointer, data)
     {
         var position =get_player_relative_position(pointer);
         var distance = Phaser.Math.Distance.Between(position.x, position.y, LENGTH/2.0, LENGTH/2.0); 
@@ -470,33 +470,33 @@ var circle_config = {
 
 };
 var triangle_config = {
-    'inputs': {},
-    'name': 'Triangle',
-    'eval_name': 'EvalTriangle',
-    'control_help_instructions': ['Use cursor to control edge of triangle'],
-    'make_data': function(cache)
+    inputs: {},
+    name: 'Triangle',
+    eval_name: 'EvalTriangle',
+    control_help_instructions: ['Use cursor to control edge of triangle'],
+    make_data: function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
         return {
-            'reference': make_random_triangle(n_rotation),
-            'player': make_random_triangle(n_rotation)
+            reference: make_random_triangle(n_rotation),
+            player: make_random_triangle(n_rotation)
         }
 
 
     },
-    'draw_reference': function(data)
+    draw_reference: function(data)
     {
         GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
         GRAPHICS.strokeTriangleShape(data.reference);
     },
 
-    'draw_player': function(data)
+    draw_player: function(data)
     {
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokeTriangleShape(data.player);
     },
 
-    'draw_evaluation': function(data)
+    draw_evaluation: function(data)
     {
         GRAPHICS.fillStyle(GREEN, 0.3);
         GRAPHICS.fillTriangleShape(data.reference);
@@ -504,7 +504,7 @@ var triangle_config = {
         GRAPHICS.fillTriangleShape(data.player);
     },
 
-    'process_cursors_input': function(cursors, data)
+    process_cursors_input: function(cursors, data)
     {
         if (cursors.shift.isDown)
             SPEED=10;
@@ -517,7 +517,7 @@ var triangle_config = {
 
     },
 
-    'pointermove': function(pointer, data)
+    pointermove: function(pointer, data)
     {
         var position =get_player_relative_position(pointer);
         data.player.y3 = position.y
@@ -528,29 +528,29 @@ var triangle_config = {
 
 };
 var proportion_config = {
-    'inputs': {},
-    'name': 'Proportion',
-    'eval_name': 'EvalProportion',
-    'control_help_instructions': ['Use cursor to control edge of rectangle'],
-    'make_data': function(cache)
+    inputs: {},
+    name: 'Proportion',
+    eval_name: 'EvalProportion',
+    control_help_instructions: ['Use cursor to control edge of rectangle'],
+    make_data: function(cache)
     {
         var min_width = 50; 
         var scale = Phaser.Math.Between(2.0, 3.0);  
         var ref = make_random_square(min_width, LENGTH/scale, min_width, LENGTH/scale);
         var player = new Phaser.Geom.Rectangle(0, 0, ref.width*scale, 100);
         return {
-            'player' : player, 
-            'reference': ref,
-            'scale': scale,
+            player : player, 
+            reference: ref,
+            scale: scale,
         };
     },
-    'draw_reference': function(data)
+    draw_reference: function(data)
     {
         GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
         GRAPHICS.strokeRectShape(data.reference);
     },
 
-    'draw_reference_evaluation': function(data)
+    draw_reference_evaluation: function(data)
     {
         var scale = data.scale;
         var scaled_reference = new Phaser.Geom.Rectangle(0, 0, data.reference.width*scale, data.reference.height*scale);
@@ -558,13 +558,13 @@ var proportion_config = {
         GRAPHICS.strokeRectShape(scaled_reference);
     },
 
-    'draw_player': function(data)
+    draw_player: function(data)
     {
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokeRectShape(data.player);
     },
 
-    'draw_evaluation': function(data)
+    draw_evaluation: function(data)
     {
         var scale = 1.0/data.scale;
         var scaled_player = new Phaser.Geom.Rectangle(0, 0, data.player.width*scale, data.player.height*scale);
@@ -575,7 +575,7 @@ var proportion_config = {
     },
 
 
-    'process_cursors_input': function(cursors, data)
+    process_cursors_input: function(cursors, data)
     {
         if (cursors.shift.isDown)
             SPEED=10;
@@ -586,7 +586,7 @@ var proportion_config = {
 
     },
 
-    'pointermove': function(pointer, data)
+    pointermove: function(pointer, data)
     {
         var position =get_player_relative_position(pointer);
         data.player.height = position.y
@@ -595,30 +595,30 @@ var proportion_config = {
 }
 
 var square_config = {
-    'inputs': {},
-    'name': 'Square',
-    'eval_name': 'EvalSquare',
-    'control_help_instructions': ['Use cursor to control edge of rectangle'],
-    'make_data': function()
+    inputs: {},
+    name: 'Square',
+    eval_name: 'EvalSquare',
+    control_help_instructions: ['Use cursor to control edge of rectangle'],
+    make_data: function()
     {
         return {
-            'reference' : make_random_square(50, LENGTH, 50, LENGTH),
-            'player' : make_random_square(50, LENGTH, 50, LENGTH),
+            reference : make_random_square(50, LENGTH, 50, LENGTH),
+            player : make_random_square(50, LENGTH, 50, LENGTH),
         };
     },
-    'draw_reference': function(data)
+    draw_reference: function(data)
     {
         GRAPHICS.lineStyle(1, REFERENCE_COLOR, 1.0);
         GRAPHICS.strokeRectShape(data.reference);
     },
 
-    'draw_player': function(data)
+    draw_player: function(data)
     {
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokeRectShape(data.player);
     },
 
-    'draw_evaluation': function(data)
+    draw_evaluation: function(data)
     {
         GRAPHICS.fillStyle(GREEN, 0.3);
         GRAPHICS.fillRectShape(data.reference);
@@ -626,7 +626,7 @@ var square_config = {
         GRAPHICS.fillRectShape(data.player);
     },
 
-    'process_cursors_input': function(cursors, data)
+    process_cursors_input: function(cursors, data)
     {
         if (cursors.shift.isDown)
             SPEED=10;
@@ -639,7 +639,7 @@ var square_config = {
 
     },
 
-    'pointermove': function(pointer, data)
+    pointermove: function(pointer, data)
     {
         var position =get_player_relative_position(pointer);
         data.player.height = position.y

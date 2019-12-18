@@ -17,7 +17,7 @@ never =  function(stats)
 
 LEVELS =
 {
-    'DEV':
+    DEV:
     {
         name: 'Dev',
         key: 'dev',
@@ -25,14 +25,15 @@ LEVELS =
         evaluate_loss_condition:  never
     },
 
-    'TRAINING':
+    TRAINING:
     {
         name: 'Training',
         key: 'training5x3',
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Quad', 'Square', 'Circle']),
         evaluate_loss_condition:  never
     },
-    'QUAD_WO_FRAME_W_COR':{
+    QUAD_WO_FRAME_W_COR:
+    {
         name: 'Quad Without Frame With Correction x 12',
         make_scenes_fun: ()=> repeat('QuadSpaceWCorr',12),
         key: 'quad_wo_frame_w_corrx12',
@@ -40,7 +41,8 @@ LEVELS =
         //evaluate_loss_condition: stop_if_too_bad
     },
 
-    'QUAD_WO_FRAME':{
+    QUAD_WO_FRAME:
+    {
         name: 'Quad Without Frame x 12',
         make_scenes_fun: ()=> repeat('QuadSpace',12),
         key: 'quad_wo_framex12',
@@ -48,7 +50,7 @@ LEVELS =
         //evaluate_loss_condition: stop_if_too_bad
     },
 
-    'QUAD':{
+    QUAD:{
         name: 'Quad x 12',
         make_scenes_fun: ()=> repeat('Quad',12),
         key: 'quadx12',
