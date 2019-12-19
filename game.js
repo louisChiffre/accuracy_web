@@ -57,7 +57,7 @@ LEVELS =
         evaluate_loss_condition:  never
         //evaluate_loss_condition: stop_if_too_bad
     },
-    'QUAD_HARD':{
+    QUAD_HARD:{
         name: 'Quad Hard x 12',
         make_scenes_fun: ()=> repeat('QuadHard',12),
         key: 'quad_hardx12',
@@ -65,34 +65,34 @@ LEVELS =
         //evaluate_loss_condition: stop_if_too_bad
     },
 
-    'PROPORTION':{
+    PROPORTION:{
         name: 'Proportion x 12',
         make_scenes_fun: ()=> repeat('Proportion',12),
         key: 'proportionx12',
         evaluate_loss_condition: stop_if_too_bad
     },
 
-    'TRIANGLE':{
+    TRIANGLE:{
         name: 'Triangle x 12',
         make_scenes_fun: ()=> repeat('Triangle',12),
         key: 'trianglex12',
         evaluate_loss_condition: stop_if_too_bad
     },
 
-    'POLYGON':{
+    POLYGON:{
         name: 'Polygon x 6',
         make_scenes_fun: ()=> repeat('Blob',6),
         key: 'polygonx6',
         evaluate_loss_condition: stop_if_too_bad
     },
 
-    'CIRCLE':{
+    CIRCLE:{
         name: 'Circle x 12',
         make_scenes_fun: ()=> repeat('Circle',12),
         key: 'circlex12',
         evaluate_loss_condition: stop_if_too_bad
     },
-    'SQUARE':{
+    SQUARE:{
         name: 'Square x 12',
         make_scenes_fun: ()=> repeat('Square',12),
         key: 'squarex12',
