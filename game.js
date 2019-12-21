@@ -646,10 +646,8 @@ var CODE2GAME = {}
 
 function make_status_string()
 {
-    var stats = read_local_stats();
-    var historical_stats = calculate_historical_performance(stats);
-    var stat_strings = make_stats_strings(historical_stats);
-    stat_strings.push(SESSION_MANAGER.session_state_string)
+    stat_strings = SESSION_MANAGER.session_state_string
+    console.log(stat_strings)
     return stat_strings;
 }
 

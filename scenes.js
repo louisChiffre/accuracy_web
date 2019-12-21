@@ -674,7 +674,7 @@ class EvaluateScene extends Phaser.Scene {
         make_scene_setup(this);
         this.data_=data;
         this.name_text.setText(get_display_name())
-        //this.stats_text.setText(make_status_string());
+        this.stats_text.setText(make_status_string());
 
         var explanations = [
             'Brown is the intersection between your drawing',
@@ -767,7 +767,7 @@ class InputScene extends Phaser.Scene {
 
         this.data_.config = config;
         this.name_text.setText(get_display_name())
-        //this.stats_text.setText(make_status_string());
+        this.stats_text.setText(make_status_string());
         this.help_text.setText(make_help_text(config.control_help_instructions||[], 'validate'))
 
 
