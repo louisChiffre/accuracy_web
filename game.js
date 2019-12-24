@@ -887,11 +887,16 @@ class End extends Phaser.Scene {
 
 
         var session_stat = result.sessions[result.rank]
+        
         //if it's our best we save it 
         if(result.rank==0)
         {
             console.log('saving highscore to leaderboard');
-            save_score_firestore(extract_session_key(session_id), session_stat.mean,USER_INFO.name)
+            save_score_firestore(
+                extract_session_key(session_id), 
+                JSON.stringify({score:session_stat.mean, time:session_stat.time, user:USER_INFO.name}),
+                FIREBASE_USER.uid)
+
         }
 
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
