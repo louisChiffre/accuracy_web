@@ -142,6 +142,7 @@ var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 
 
 const make_session_id = (key)=>`${Date.now()}__${key}`
+const extract_session_key = (session_id)=>session_id.split('__')[1]
 
 function extract_regex_from_session_id(session_id)
 {
@@ -256,8 +257,10 @@ class SessionManager
 }
 
 
+const get_firestore_leaderboard_ref=(key)=>FIREBASE_DB.collection('leaderboards').doc(key)
 const get_firestore_user_ref=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid)
 const get_firestore_stats_collection=()=>get_firestore_user_ref().collection('stats')
+
 function remove_duplicates(stats)
 {
     var txt =`remove duplicates of ${stats.length}`
@@ -286,7 +289,7 @@ function get_user_info()
 {
     return get_firestore_user_ref().get().then(function(x)
     {
-        console.log(`got in wit ${x.data()}`)
+        console.log(`got in with ${x.data()}`)
         console.log(x.data())
         data = x.data()||{}
         return data;
@@ -326,6 +329,24 @@ function save_stat_firestore(stat)
         console.error("Error adding document: ", error);
     });
 }
+
+function save_score_firestore(game_key, game_score, user_name)
+{
+    console.log(`save score [${game_score}] for game [${game_key}] for user [${user_name}]`);
+    var data = {[user_name]: game_score}
+    get_firestore_leaderboard_ref(game_key).set(
+        {[user_name]: game_score},
+        {merge:true})
+    .then(function(docRef) {
+        console.log('score saved');
+    })
+    .catch(function(error) {
+        console.error("Error updating document: ", error);
+    });
+}
+
+
+
 
 function read_stat_firestore()
 {
@@ -864,14 +885,21 @@ class End extends Phaser.Scene {
         ].join('')).join('\n')
         this.score_text.setFontSize(DEFAULT_FONT_SIZE).setText(highscore_text)
 
+
         var session_stat = result.sessions[result.rank]
+        //if it's our best we save it 
+        if(result.rank==0)
+        {
+            console.log('saving highscore to leaderboard');
+            save_score_firestore(extract_session_key(session_id), session_stat.mean,USER_INFO.name)
+        }
+
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
         list_strings.push(`--------------`)
         list_strings.push(`${'Average'.padEnd(10)} ${(100*session_stat.mean).toFixed(1)}`)
         var list_text = list_strings.join('\n');
         this.help_text.setText(list_text)
         
-        //var =summary = calculate_stats_summary(read_local_stats().filter((x)=> x.session_id == SESSION_MANAGER._session_id))
         var scene = this;
         sync_stats().then(function(stats)
         {
