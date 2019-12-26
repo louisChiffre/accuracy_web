@@ -132,6 +132,7 @@ var DEFAULT_FONT_SIZE = 16;
 
 // roughly the size of a panel
 var LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
+var CENTER = {x:WIDTH/2, y:HEIGHT/2}
 
 var REFERENCE_ORIGIN ={x:3,y:3}
 var PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
@@ -933,26 +934,14 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
-        const M = Phaser.Input.Keyboard.KeyCodes;
-        var KEY_NAMES = ['ONE', 'TWO', 'THREE', 'FOUR', 'FIVE', 'SIX', 'SEVEN', 'EIGHT', 'NINE', 'ZERO']
-        var key2level = {}
-        Object.keys(LEVELS).forEach(
-            (x,index)=>{key2level[KEY_NAMES[index]]=x})
-        var code2level = {}
-        Object.entries(key2level).map(function(x) {code2level[M[x[0]]]=x[1]})
-        var text = Object.entries(key2level).map((x,i) => `${(i+1).toString().padStart(2)}. ${LEVELS[x[1]].name}`).join('\n')
-        this.stats_text.setText( `Select one level\n${text}`);
-
-        scene.input.keyboard.on('keydown', function (event)
-        {
-            if(event.keyCode in code2level)
-            {
-                SESSION_MANAGER = new SessionManager(LEVELS[code2level[event.keyCode]])
+        Object.values(LEVELS).map((level,i) => scene.add.text()
+            .setPosition(CENTER.x, CENTER.y+i*16)
+            .setText(`${level.name}`)
+            .setInteractive()
+            .on('pointerdown', function(pointer, localX, localY, event){
+                SESSION_MANAGER = new SessionManager(level)
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
-            }
-
-        }, scene);
-
+                }))
     }
     update ()
     {
