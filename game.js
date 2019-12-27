@@ -895,8 +895,8 @@ class End extends Phaser.Scene {
             .setColor( ((i==result.rank) ? RED_TEXT:WHITE_TEXT))
             .setText(
                 [
-                `${x.rank.toFixed(0)}.  `.padStart(5),
-                `${(x.mean*100).toFixed(1)}`.padEnd(6), 
+                `${x.rank.toFixed(0)}.  `.padStart(6),
+                `${(x.mean*100).toFixed(2)}`.padEnd(6), 
                 moment(new Date(x.time)).fromNow()].join(''))
         })
 
