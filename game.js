@@ -937,15 +937,35 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
-        Object.values(LEVELS).map((level,i) => scene.add.text()
+        Object.values(LEVELS).map((level,i) => {
+            var text = scene.add.text()
             .setPosition(CENTER.x, CENTER.y+i*16)
             .setText(`${level.name}`)
             .setInteractive()
+            //.setColor(WHITE_TEXT)
             .on('pointerdown', function(pointer, localX, localY, event){
                 SESSION_MANAGER = new SessionManager(level)
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
-                }))
+                })
+            //could chain this portion because I could not refer the text in the callback
+            text
+                .on('pointerover',(pointer, localX, localY, event)=> {text.setColor(RED_TEXT)})
+                .on('pointerout',(pointer, localX, localY, event)=> {text.setColor(WHITE_TEXT)})
+            /*.on('pointerover',function(pointer){
+                scene.tweens.add({
+                    targets: this,
+                    alpha: 0.2,
+                    duration: 500,
+                    ease: 'Power3',
+                    yoyo:true
+                });
+            })
+            .on('pointeout',function(pointer){
+                scene.tweens.killAll()
+            })*/
+            })
     }
+
     update ()
     {
     }
