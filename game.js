@@ -683,7 +683,7 @@ function make_scene_setup(scene)
 
     scene.stats_text = scene.add.text(
         STATS_ORIGIN.x, 
-        STATS_ORIGIN.y).setFontSize(16).setFontFamily(FONT_FAMILY)
+        STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
 
     scene.score_text = scene.add.text(
         SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
@@ -874,20 +874,31 @@ class End extends Phaser.Scene {
     {
         make_scene_setup(this);
         //this.stats_text.setText('WE ARE DONE\n[recap of performance]')
-        this.stats_text.setText(make_status_string());
+        //this.stats_text.setText(make_status_string());
         var all_stats=read_local_stats()
         var session_id = SESSION_MANAGER._session_id
         var current_stats = all_stats.filter((x)=> x.session_id == session_id)
-        //console.log(current_stats)
         this.list_text.setText('Saving stats ..')
+        var scene = this;
         
         var result = rank_sessions(all_stats, session_id);
-        var highscore_text = _.take(result.sessions,10).map(x=> [
-            `${x.rank.toFixed(0)}.  `.padStart(4),
-            `${(x.mean*100).toFixed(1)}`.padEnd(6), 
-            moment(new Date(x.time)).fromNow()
-        ].join('')).join('\n')
-        this.score_text.setFontSize(DEFAULT_FONT_SIZE).setText(highscore_text)
+
+        // list personal scores
+        const max_score =30;
+        scene.add.text()
+        .setFontSize(DEFAULT_FONT_SIZE)
+        .setText(`PERSONAL TOP ${max_score}`)
+        _.take(result.sessions,max_score).map((x,i)=>{
+            scene.add.text()
+            .setFontSize(DEFAULT_FONT_SIZE)
+            .setPosition(SCORE_ORIGIN.x, SCORE_ORIGIN.y+(i+1)*DEFAULT_FONT_SIZE)
+            .setColor( ((i==result.rank) ? RED_TEXT:WHITE_TEXT))
+            .setText(
+                [
+                `${x.rank.toFixed(0)}.  `.padStart(5),
+                `${(x.mean*100).toFixed(1)}`.padEnd(6), 
+                moment(new Date(x.time)).fromNow()].join(''))
+        })
 
 
         var session_stat = result.sessions[result.rank]
@@ -912,7 +923,7 @@ class End extends Phaser.Scene {
         var scene = this;
         sync_stats().then(function(stats)
         {
-            scene.list_text.setText(`We are done. ${stats.length} exercises saved. Hit space bar to continue`)
+            scene.list_text.setText(`We are done. ${stats.length} exercises saved.\nHit space bar to continue`)
             scene.input.keyboard.on('keydown_SPACE', function (event)
 
             {
@@ -939,7 +950,7 @@ class Menu extends Phaser.Scene {
         var scene = this;
         Object.values(LEVELS).map((level,i) => {
             var text = scene.add.text()
-            .setPosition(CENTER.x, CENTER.y+i*16)
+            .setPosition(CENTER.x, CENTER.y+i*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
             .setInteractive()
             //.setColor(WHITE_TEXT)
