@@ -116,30 +116,33 @@ var FIREBASE_DB;
 var USER_INFO;
 
 
-var BORDER = 10;
-var WIDTH = 800;
-var HEIGHT = 800;
+const BORDER = 10;
+const WIDTH = 800;
+const HEIGHT = 800;
 
-var WHITE=0xFFFFFF;
-var RED=0xFF0000;
-var GREEN=0x00FF00;
+const WHITE=0xFFFFFF;
+const RED=0xFF0000;
+const GREEN=0x00FF00;
 
-var FONT_FAMILY = 'monospace';
-var DEFAULT_FONT_SIZE = 16;
+const RED_TEXT='#ff0000';
+const WHITE_TEXT='#ffffff';
+
+const FONT_FAMILY = 'monospace';
+const DEFAULT_FONT_SIZE = 16;
 //var FONT_FAMILY = 'battle';
 //var DEFAULT_FONT_SIZE = 14;
 
 
 // roughly the size of a panel
-var LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
-var CENTER = {x:WIDTH/2, y:HEIGHT/2}
+const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
+const CENTER = {x:WIDTH/2, y:HEIGHT/2}
 
-var REFERENCE_ORIGIN ={x:3,y:3}
-var PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
-var STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
-var HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
-var PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
-var SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
+const REFERENCE_ORIGIN ={x:3,y:3}
+const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
+const STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
+const HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
+const PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
+const SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 
 
 const make_session_id = (key)=>`${Date.now()}__${key}`
