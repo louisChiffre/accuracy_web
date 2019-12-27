@@ -901,14 +901,11 @@ class End extends Phaser.Scene {
         })
 
 
-        //var session_stat = result.sessions[result.rank]
         var session_stat = result.sessions[result.rank]
         
         //if it's our best we save it 
-        if(result.rank==0||true)
+        if(result.rank==0)
         {
-            session_stat = result.sessions[0]
-
             console.log('saving highscore to leaderboard');
             save_score_firestore(
                 extract_session_key(session_id), 
