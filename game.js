@@ -884,7 +884,7 @@ class End extends Phaser.Scene {
         var result = rank_sessions(all_stats, session_id);
 
         // list personal scores
-        const max_score =30;
+        const max_score=30;
         scene.add.text()
         .setFontSize(DEFAULT_FONT_SIZE)
         .setText(`PERSONAL TOP ${max_score}`)
@@ -901,11 +901,14 @@ class End extends Phaser.Scene {
         })
 
 
+        //var session_stat = result.sessions[result.rank]
         var session_stat = result.sessions[result.rank]
         
         //if it's our best we save it 
-        if(result.rank==0)
+        if(result.rank==0||true)
         {
+            session_stat = result.sessions[0]
+
             console.log('saving highscore to leaderboard');
             save_score_firestore(
                 extract_session_key(session_id), 
