@@ -765,10 +765,17 @@ class Start extends Phaser.Scene {
         emitter.setBlendMode(Phaser.BlendModes.ADD);
         */
 
-        this.center_text.setText('LOGGING IN ...')
+        var scene = this;
+        scene.center_text.setText('LOGGING IN \n')
+        const update_progress = ()=>scene.center_text.setText(scene.center_text.text + '.')
+        var logging_timer = scene.time.addEvent({
+            delay: 1000,                // ms
+            callback: update_progress ,
+            callbackScope: scene,
+            repeat: 1000 
+        });
 
         FIREBASE_APP = firebase.initializeApp(firebase_config);
-        var scene = this;
 
         FIREBASE_APP.auth().onAuthStateChanged(function (user) {
             if (user) {
@@ -783,7 +790,8 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
-                scene.center_text.setText(`LOGGED IN AS ${get_display_name()}`)
+                scene.center_text.setText(`LOADING USER INFO\n`)
+                scene.center_bottom_text.setText(`LOGGED IN AS ${get_display_name()}`)
 
                 // see https://eloquentjavascript.net/2nd_edition/18_forms.html
                 // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
@@ -860,12 +868,12 @@ class Start extends Phaser.Scene {
                     USER_INFO = user_info
                     scene.center_bottom_text.setText(`Hello ${user_info.name}!`)
                     scene.center_top_text.setText(`${stats.length} exercises loaded`)
+                    logging_timer.remove()
                     scene.center_text.setText('PRESS SPACE TO START')
                     scene.tweens.add({
                         targets: scene.center_text,
                         alpha: 0.2,
                         duration: 700,
-                        //ease: 'Power3',
                         yoyo: true,
                         repeat:-1
                     });
@@ -982,7 +990,15 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
-        scene.add.text().setPosition(CENTER_TOP.x, CENTER_TOP.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+        var select_text = scene.add.text().setPosition(CENTER_TOP.x, CENTER_TOP.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+        scene.tweens.add({
+            targets: select_text,
+            alpha: 0.2,
+            duration: 700,
+            yoyo: true,
+            repeat:-1
+        });
+
         var LIST_HEIGHT = DEFAULT_FONT_SIZE*(BASE_LEVEL_NAMES.length+5)
         var reference_frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH)
 
