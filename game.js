@@ -101,6 +101,7 @@ LEVELS =
 
 }
 
+const BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR']
 
 
 
@@ -725,12 +726,24 @@ class Start extends Phaser.Scene {
         //this.load.audio('init', 'assets/snd/init.wav');
         //this.load.audio('init', 'assets/fx_mixdown.ogg')
         //console.log('done')
-        this.load.html('nameform', 'assets/nameform.html');
+        //particle code
+        //this.load.image('spark', 'assets/particles/blue.png');
+        //this.load.html('nameform', 'assets/nameform.html');
     }
 
     create(config)
     {
         make_scene_setup(this);
+        /*
+        var particles = this.add.particles('spark');
+
+        var emitter = particles.createEmitter();
+
+        emitter.setPosition(400, 300);
+        emitter.setSpeed(140);
+        emitter.setBlendMode(Phaser.BlendModes.ADD);
+        */
+
         this.stats_text.setText('LOGGING IN ...')
 
         FIREBASE_APP = firebase.initializeApp(firebase_config);
@@ -948,7 +961,7 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
-        Object.values(LEVELS).map((level,i) => {
+        BASE_LEVEL_NAMES.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
             .setPosition(CENTER.x, CENTER.y+i*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
