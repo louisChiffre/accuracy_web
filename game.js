@@ -120,6 +120,7 @@ var USER_INFO;
 const BORDER = 10;
 const WIDTH = 800;
 const HEIGHT = 800;
+const BOTTOM_BORDER = 100;
 
 const WHITE=0xFFFFFF;
 const RED=0xFF0000;
@@ -138,7 +139,7 @@ const DEFAULT_FONT_SIZE = 16;
 const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 const CENTER = {x:WIDTH/2, y:HEIGHT/2}
 const CENTER_TOP = {x:WIDTH/2, y:BORDER}
-const CENTER_BOTTOM = {x:WIDTH/2, y:HEIGHT-BORDER}
+const CENTER_BOTTOM = {x:WIDTH/2, y:HEIGHT+(BOTTOM_BORDER*0.8)}
 
 const REFERENCE_ORIGIN ={x:3,y:3}
 const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
@@ -165,8 +166,8 @@ var TEXT_HEIGHT = 15
 var REFERENCE_COLOR = WHITE
 
 var PHASER_CONFIG = {
-    width: WIDTH+100,
-    height: HEIGHT+100,
+    width: WIDTH + BOTTOM_BORDER,
+    height: HEIGHT + BOTTOM_BORDER,
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
     pixelArt:true,
@@ -245,7 +246,8 @@ class SessionManager
         {
             return;
         }
-        var config = CONFIGS.find(({ name }) => name === scene_name );
+        //var config = CONFIGS.find(({ name }) => name === scene_name );
+        var config = get_config_by_name(scene_name)
         GAME.scene.add(config.name, InputScene, false, config);
         GAME.scene.add(config.eval_name, EvaluateScene, false, config);
     }
@@ -263,6 +265,7 @@ class SessionManager
     }
 }
 
+const get_config_by_name= (level_name)=> CONFIGS.find(({ name }) => name === level_name )
 
 const get_firestore_leaderboard_ref=(key)=>FIREBASE_DB.collection('leaderboards').doc(key)
 const get_firestore_user_ref=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid)
@@ -979,11 +982,13 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
-        scene.add.text().setPosition(CENTER.x, CENTER.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+        scene.add.text().setPosition(CENTER_TOP.x, CENTER_TOP.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+        var LIST_HEIGHT = DEFAULT_FONT_SIZE*(BASE_LEVEL_NAMES.length+5)
+        var reference_frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH)
 
         BASE_LEVEL_NAMES.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
-            .setPosition(CENTER.x, CENTER.y+(i+2)*DEFAULT_FONT_SIZE)
+            .setPosition(CENTER_TOP.x, CENTER_TOP.y+(i+2)*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
             .setOrigin(0.5,0)
             .setInteractive()
@@ -992,8 +997,22 @@ class Menu extends Phaser.Scene {
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
                 })
             //could chain this portion because I could not refer the text in the callback
+            const make_sample= (level)=>
+            {
+                GRAPHICS.clear()
+                GRAPHICS.translateCanvas(CENTER.x-(LENGTH*0.5), LIST_HEIGHT);
+
+                GRAPHICS.scaleCanvas(1.4,1.4);
+                const name = level.make_scenes_fun()[0];
+                const config = get_config_by_name(name);
+                config.draw_reference(config.make_data())
+                GRAPHICS.lineStyle(1, WHITE, 0.2);
+                GRAPHICS.strokeRectShape(reference_frame);
+
+
+            }
             text
-                .on('pointerover',(pointer, localX, localY, event)=> {text.setColor(RED_TEXT)})
+                .on('pointerover',(pointer, localX, localY, event)=> {make_sample(level);text.setColor(RED_TEXT)})
                 .on('pointerout',(pointer, localX, localY, event)=> {text.setColor(WHITE_TEXT)})
             })
     }
