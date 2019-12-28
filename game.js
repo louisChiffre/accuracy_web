@@ -34,7 +34,7 @@ LEVELS =
     },
     QUAD_WO_FRAME_W_COR:
     {
-        name: 'Quad Without Frame With Correction x 12',
+        name: 'Quadrilateral',
         make_scenes_fun: ()=> repeat('QuadSpaceWCorr',12),
         key: 'quad_wo_frame_w_corrx12',
         evaluate_loss_condition:  never
@@ -73,7 +73,7 @@ LEVELS =
     },
 
     TRIANGLE:{
-        name: 'Triangle x 12',
+        name: 'Triangle',
         make_scenes_fun: ()=> repeat('Triangle',12),
         key: 'trianglex12',
         evaluate_loss_condition: stop_if_too_bad
@@ -87,13 +87,13 @@ LEVELS =
     },
 
     CIRCLE:{
-        name: 'Circle x 12',
+        name: 'Circle',
         make_scenes_fun: ()=> repeat('Circle',12),
         key: 'circlex12',
         evaluate_loss_condition: stop_if_too_bad
     },
     SQUARE:{
-        name: 'Square x 12',
+        name: 'Rectangle',
         make_scenes_fun: ()=> repeat('Square',12),
         key: 'squarex12',
         evaluate_loss_condition: stop_if_too_bad 
@@ -137,12 +137,14 @@ const DEFAULT_FONT_SIZE = 16;
 // roughly the size of a panel
 const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
 const CENTER = {x:WIDTH/2, y:HEIGHT/2}
+const CENTER_TOP = {x:WIDTH/2, y:BORDER}
+const CENTER_BOTTOM = {x:WIDTH/2, y:HEIGHT-BORDER}
 
 const REFERENCE_ORIGIN ={x:3,y:3}
 const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
 const STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
 const HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
-const PLAYER_NAME_ORIGIN = {x:REFERENCE_ORIGIN.x, y:2*LENGTH-BORDER};
+const PLAYER_NAME_ORIGIN = {x:CENTER.x, y:2*LENGTH};
 const SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
 
 
@@ -682,6 +684,25 @@ function make_scene_setup(scene)
     console.time('scene setup')
     GRAPHICS = scene.add.graphics();
 
+    scene.center_text = scene.add.text(CENTER.x, CENTER.y)
+        .setFontSize(DEFAULT_FONT_SIZE)
+        .setFontFamily(FONT_FAMILY)
+        .setAlign('center')
+        .setOrigin(0.5,0)
+
+    scene.center_bottom_text = scene.add.text(CENTER_BOTTOM.x, CENTER_BOTTOM.y)
+        .setFontSize(DEFAULT_FONT_SIZE)
+        .setFontFamily(FONT_FAMILY)
+        .setAlign('center')
+        .setOrigin(0.5,0)
+
+    scene.center_top_text = scene.add.text(CENTER_TOP.x, CENTER_TOP.y)
+        .setFontSize(DEFAULT_FONT_SIZE)
+        .setFontFamily(FONT_FAMILY)
+        .setAlign('center')
+        .setOrigin(0.5,0)
+
+
     scene.stats_text = scene.add.text(
         STATS_ORIGIN.x, 
         STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
@@ -698,9 +719,6 @@ function make_scene_setup(scene)
         .setFontStyle('bold')
         .setFontFamily(FONT_FAMILY);
 
-    scene.name_text = scene.add.text(
-        PLAYER_NAME_ORIGIN.x, 
-        PLAYER_NAME_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY);
 
     scene.help_text = scene.add.text(
         HELP_ORIGIN.x, 
@@ -744,7 +762,7 @@ class Start extends Phaser.Scene {
         emitter.setBlendMode(Phaser.BlendModes.ADD);
         */
 
-        this.stats_text.setText('LOGGING IN ...')
+        this.center_text.setText('LOGGING IN ...')
 
         FIREBASE_APP = firebase.initializeApp(firebase_config);
         var scene = this;
@@ -762,7 +780,7 @@ class Start extends Phaser.Scene {
                 console.log(displayName + '(' + uid + '): ' + email);
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
-                scene.stats_text.setText(`LOGGED IN AS ${get_display_name()}`)
+                scene.center_text.setText(`LOGGED IN AS ${get_display_name()}`)
 
                 // see https://eloquentjavascript.net/2nd_edition/18_forms.html
                 // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
@@ -793,7 +811,7 @@ class Start extends Phaser.Scene {
                                 {
                                     //  Flash the prompt
                                     this.scene.tweens.add({
-                                        targets: this.scene.stats_text,
+                                        targets: this.scene.center_text,
                                         alpha: 0.2,
                                         duration: 250,
                                         ease: 'Power3',
@@ -837,11 +855,11 @@ class Start extends Phaser.Scene {
                     var user_info = objects[0] 
                     var stats = objects[1]
                     USER_INFO = user_info
-                    scene.name_text.setText(`Hello ${user_info.name}!`)
-                    scene.help_text.setText(`${stats.length} exercises loaded`)
-                    scene.stats_text.setText('PRESS SPACE TO START')
+                    scene.center_bottom_text.setText(`Hello ${user_info.name}!`)
+                    scene.center_top_text.setText(`${stats.length} exercises loaded`)
+                    scene.center_text.setText('PRESS SPACE TO START')
                     scene.tweens.add({
-                        targets: scene.stats_text,
+                        targets: scene.center_text,
                         alpha: 0.2,
                         duration: 700,
                         //ease: 'Power3',
@@ -858,7 +876,7 @@ class Start extends Phaser.Scene {
                 )
 
             } else {
-                scene.stats_text.setText('LOGGED OUT. PLEASE LOG IN');
+                scene.center_text.setText('LOGGED OUT. PLEASE LOG IN');
                 console.log('log-out');
                 var provider = new firebase.auth.GoogleAuthProvider();
                 FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
@@ -961,12 +979,14 @@ class Menu extends Phaser.Scene {
     {
         make_scene_setup(this);
         var scene = this;
+        scene.add.text().setPosition(CENTER.x, CENTER.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+
         BASE_LEVEL_NAMES.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
-            .setPosition(CENTER.x, CENTER.y+i*DEFAULT_FONT_SIZE)
+            .setPosition(CENTER.x, CENTER.y+(i+2)*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
+            .setOrigin(0.5,0)
             .setInteractive()
-            //.setColor(WHITE_TEXT)
             .on('pointerdown', function(pointer, localX, localY, event){
                 SESSION_MANAGER = new SessionManager(level)
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
@@ -975,18 +995,6 @@ class Menu extends Phaser.Scene {
             text
                 .on('pointerover',(pointer, localX, localY, event)=> {text.setColor(RED_TEXT)})
                 .on('pointerout',(pointer, localX, localY, event)=> {text.setColor(WHITE_TEXT)})
-            /*.on('pointerover',function(pointer){
-                scene.tweens.add({
-                    targets: this,
-                    alpha: 0.2,
-                    duration: 500,
-                    ease: 'Power3',
-                    yoyo:true
-                });
-            })
-            .on('pointeout',function(pointer){
-                scene.tweens.killAll()
-            })*/
             })
     }
 
