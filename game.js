@@ -137,9 +137,9 @@ const DEFAULT_FONT_SIZE = 16;
 
 // roughly the size of a panel
 const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
-const CENTER = {x:WIDTH/2, y:HEIGHT/2}
-const CENTER_TOP = {x:WIDTH/2, y:BORDER}
-const CENTER_BOTTOM = {x:WIDTH/2, y:HEIGHT+(BOTTOM_BORDER*0.8)}
+const CENTER = {x:(WIDTH+BOTTOM_BORDER)/2, y:(HEIGHT+BOTTOM_BORDER)/2}
+const CENTER_TOP = {x:CENTER.x, y:BORDER}
+const CENTER_BOTTOM = {x:CENTER.x, y:HEIGHT+(BOTTOM_BORDER*0.8)}
 
 const REFERENCE_ORIGIN ={x:3,y:3}
 const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
@@ -791,7 +791,7 @@ class Start extends Phaser.Scene {
                 FIREBASE_USER = user;
                 FIREBASE_DB = firebase.firestore();
                 scene.center_text.setText(`LOADING USER INFO\n`)
-                scene.center_bottom_text.setText(`LOGGED IN AS ${get_display_name()}`)
+                scene.center_bottom_text.setText(`logged in as ${get_display_name()}`)
 
                 // see https://eloquentjavascript.net/2nd_edition/18_forms.html
                 // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
