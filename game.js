@@ -66,7 +66,7 @@ LEVELS =
     },
 
     PROPORTION:{
-        name: 'Proportion x 12',
+        name: 'Proportion',
         make_scenes_fun: ()=> repeat('Proportion',12),
         key: 'proportionx12',
         evaluate_loss_condition: stop_if_too_bad
