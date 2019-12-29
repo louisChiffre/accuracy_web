@@ -887,17 +887,8 @@ class Start extends Phaser.Scene {
                 )
 
             } else {
-                scene.center_text.setText('PLEASE LOG IN\n');
-                console.log('log-out');
-                var provider = new firebase.auth.GoogleAuthProvider();
-                FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
-                    console.log(user);
-
-                }).catch(function (error) {
-                    var errorMessage = error.message;
-                    console.log(errorMessage);
-                });
-
+                scene.center_text.setText('REDIRECTING TO SIGN IN PAGE\n');
+                window.location.href="index_with_authentication.html";
             }
         });
 
