@@ -110,7 +110,8 @@ const CONFIGS = [
     proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
-var FIREBASE_APP;
+var FIREBASE_APP = firebase.initializeApp(firebase_config);
+
 var FIREBASE_USER;
 var FIREBASE_DB;
 
@@ -749,7 +750,7 @@ class Start extends Phaser.Scene {
         //console.log('done')
         //particle code
         //this.load.image('spark', 'assets/particles/blue.png');
-        //this.load.html('nameform', 'assets/nameform.html');
+        this.load.html('nameform', 'assets/nameform.html');
     }
 
     create(config)
@@ -775,7 +776,6 @@ class Start extends Phaser.Scene {
             repeat: 1000 
         });
 
-        FIREBASE_APP = firebase.initializeApp(firebase_config);
 
         FIREBASE_APP.auth().onAuthStateChanged(function (user) {
             if (user) {
@@ -797,7 +797,7 @@ class Start extends Phaser.Scene {
                 // also lifted from public/src/game objects/dom element/input test.js in phaser3 examples
                 function read_input_name(user_info)
                 {
-                    console.log(user_info);
+                    console.log('this is the user info we have',user_info);
                     return new Promise(function(succeed, fail)
                     {
                         var element = scene.add.dom(200, 100).createFromCache('nameform');
@@ -887,7 +887,7 @@ class Start extends Phaser.Scene {
                 )
 
             } else {
-                scene.center_text.setText('LOGGED OUT. PLEASE LOG IN');
+                scene.center_text.setText('PLEASE LOG IN\n');
                 console.log('log-out');
                 var provider = new firebase.auth.GoogleAuthProvider();
                 FIREBASE_APP.auth().signInWithPopup(provider).then(function (result) {
@@ -1012,6 +1012,21 @@ class Menu extends Phaser.Scene {
                 SESSION_MANAGER = new SessionManager(level)
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
                 })
+
+            /*
+            get_firestore_leaderboard_ref(level.key).get().then( function(querySnapshot) {
+                var scores = Object.entries(querySnapshot.data()).map((x)=> {
+                        var uid = x[0]
+                        var score = JSON.parse(x[1])
+                        score.uuid = uid;
+                        return score
+                    })
+                })
+            .catch(function(error) {
+                console.error("Error adding document: ", error);
+            });
+            */
+
             //could chain this portion because I could not refer the text in the callback
             const make_sample= (level)=>
             {
