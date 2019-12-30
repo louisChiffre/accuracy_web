@@ -14,14 +14,14 @@ never =  function(stats)
                 has_lost: false
             }
 }
-const BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'TRAINING']
+const BASE_LEVEL_NAMES = ['DEV','CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'TRAINING']
 LEVELS =
 {
     DEV:
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(2 ,['QuadSpaceWCorr']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(2 ,['CircleTimer']),
         evaluate_loss_condition:  never,
         description: 'Just for dev purpose',
     },
@@ -110,7 +110,7 @@ LEVELS =
 
 
 const CONFIGS = [
-    triangle_config, blob_config, circle_config, square_config, 
+    triangle_config, blob_config, circle_config, square_config, circle_config_with_timer, 
     proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
@@ -919,23 +919,49 @@ class End extends Phaser.Scene {
         var scene = this;
         
         var result = rank_sessions(all_stats, session_id);
-
+        const MAX_SCORE=30;
         // list personal scores
-        const max_score=30;
-        scene.add.text()
-        .setFontSize(DEFAULT_FONT_SIZE)
-        .setText(`PERSONAL TOP ${max_score}`)
-        _.take(result.sessions,max_score).map((x,i)=>{
+        const make_personal_leaderboard = ()=>
+        {
             scene.add.text()
             .setFontSize(DEFAULT_FONT_SIZE)
-            .setPosition(SCORE_ORIGIN.x, SCORE_ORIGIN.y+(i+1)*DEFAULT_FONT_SIZE)
-            .setColor( ((i==result.rank) ? RED_TEXT:WHITE_TEXT))
-            .setText(
-                [
-                `${x.rank.toFixed(0)}.  `.padStart(6),
-                `${(x.mean*100).toFixed(2)}`.padEnd(6), 
-                moment(new Date(x.time)).fromNow()].join(''))
-        })
+            .setText(`PERSONAL TOP ${MAX_SCORE}`)
+            _.take(result.sessions,MAX_SCORE).map((x,i)=>{
+                scene.add.text()
+                .setFontSize(DEFAULT_FONT_SIZE)
+                .setPosition(SCORE_ORIGIN.x, SCORE_ORIGIN.y+(i+1)*DEFAULT_FONT_SIZE)
+                .setColor( ((i==result.rank) ? RED_TEXT:WHITE_TEXT))
+                .setText(
+                    [
+                    `${x.rank.toFixed(0)}.  `.padStart(6),
+                    `${(x.mean*100).toFixed(2)}`.padEnd(6), 
+                    moment(new Date(x.time)).fromNow()].join(''))
+            })
+        }
+        make_personal_leaderboard()
+
+
+        var key = extract_session_key(session_id);
+        get_firestore_leaderboard_ref(key).get().then( function(querySnapshot) {
+            var scores = Object.entries(querySnapshot.data()).map((x)=> {
+                    var uid = x[0]
+                    var score = JSON.parse(x[1])
+                    score.uid = uid;
+                    return score
+                })
+            var best = _.chain(scores).orderBy('score','desc').first().value()||{score:0};
+            var own = _.chain(scores).filter((x)=>x.uid==FIREBASE_USER.uid).first().value()||{score:0};
+            if(best.score>0)
+            {
+                scene.center_bottom_text.setText(`Best score is ${(best.score*100).toFixed(2)} from ${best.user}`)
+            }
+            })
+        .catch(function(error) {
+            console.error("Error adding document: ", error);
+        });
+
+
+
 
 
         var session_stat = result.sessions[result.rank]

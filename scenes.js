@@ -467,8 +467,12 @@ var circle_config = {
         var distance = Phaser.Math.Distance.Between(position.x, position.y, LENGTH/2.0, LENGTH/2.0); 
         data.player.radius = distance;
     },
-
 };
+
+
+var circle_config_with_timer = {...circle_config, ...{name:'CircleTimer',eval_name:'EvalCircleTimer', max_time_s:5}}
+
+
 var triangle_config = {
     inputs: {},
     name: 'Triangle',
@@ -785,13 +789,20 @@ class InputScene extends Phaser.Scene {
                 config.inputs[event.key](this.data_);
             }
         }, this);
+
+        var max_time_s = config.max_time_s||3600;
+        console.log('we will stop after ',max_time_s);
+        var scene = this;
+        const start_eval_scene = ()=>scene.scene.start(scene.data_.config.eval_name, scene.data_)
         
+        this.logging_timer = this.time.addEvent({
+            delay: 1000 * max_time_s,                // ms
+            callback: ()=>{console.log('TIMER');start_eval_scene()},
+            callbackScope: scene,
+        });
 
-        this.input.keyboard.on('keydown_SPACE', function (event)
-        {
-            this.scene.start(this.data_.config.eval_name, this.data_);
 
-        }, this);
+        this.input.keyboard.on('keydown_SPACE',start_eval_scene)
 
 
 
