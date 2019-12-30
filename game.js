@@ -978,7 +978,8 @@ class End extends Phaser.Scene {
         }
 
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
-        list_strings.push(`--------------`)
+        list_strings.unshift(`Session Score   \n`)
+        list_strings.push(   `----------------`)
         list_strings.push(`${'Average'.padEnd(10)} ${(100*session_stat.mean).toFixed(1)}`)
         var list_text = list_strings.join('\n');
         this.help_text.setText(list_text)
