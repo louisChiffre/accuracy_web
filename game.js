@@ -3,7 +3,7 @@ let repeat = (x,n) => Array.from(Array(n).keys()).map(i=>x)
 
 stop_if_too_bad = function(stats)
 {
-    var has_lost = _.some(stats, (x)=> x.score<0.8)
+    var has_lost = _.some(stats, (x)=> x.score<0.01)
     return {
         has_lost: has_lost
     }
@@ -14,31 +14,34 @@ never =  function(stats)
                 has_lost: false
             }
 }
-
+const BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'TRAINING']
 LEVELS =
 {
     DEV:
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpaceWCorr']),
-        evaluate_loss_condition:  never
+        make_scenes_fun: ()=>create_random_scenes_sequence(2 ,['QuadSpaceWCorr']),
+        evaluate_loss_condition:  never,
+        description: 'Just for dev purpose',
     },
 
     TRAINING:
     {
         name: 'Training',
-        key: 'training5x3',
-        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Quad', 'Square', 'Circle']),
-        evaluate_loss_condition:  never
+        key: 'training_1',
+        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpaceWCorr']),
+        evaluate_loss_condition:  never,
+        description: '15 exercises selected randomly',
+
     },
     QUAD_WO_FRAME_W_COR:
     {
         name: 'Quadrilateral',
         make_scenes_fun: ()=> repeat('QuadSpaceWCorr',12),
         key: 'quad_wo_frame_w_corrx12',
-        evaluate_loss_condition:  never
-        //evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition:  never,
+        description: '12 quadrilaterals exercises'
     },
 
     QUAD_WO_FRAME:
@@ -46,22 +49,21 @@ LEVELS =
         name: 'Quad Without Frame x 12',
         make_scenes_fun: ()=> repeat('QuadSpace',12),
         key: 'quad_wo_framex12',
-        evaluate_loss_condition:  never
-        //evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition:  never,
     },
 
     QUAD:{
         name: 'Quad x 12',
         make_scenes_fun: ()=> repeat('Quad',12),
         key: 'quadx12',
-        evaluate_loss_condition:  never
+        evaluate_loss_condition:  never,
         //evaluate_loss_condition: stop_if_too_bad
     },
     QUAD_HARD:{
         name: 'Quad Hard x 12',
         make_scenes_fun: ()=> repeat('QuadHard',12),
         key: 'quad_hardx12',
-        evaluate_loss_condition:  never
+        evaluate_loss_condition:  never,
         //evaluate_loss_condition: stop_if_too_bad
     },
 
@@ -69,39 +71,41 @@ LEVELS =
         name: 'Proportion',
         make_scenes_fun: ()=> repeat('Proportion',12),
         key: 'proportionx12',
-        evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition: stop_if_too_bad,
+        description: '12 rectangle proportion exercises',
     },
 
     TRIANGLE:{
         name: 'Triangle',
         make_scenes_fun: ()=> repeat('Triangle',12),
         key: 'trianglex12',
-        evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition: stop_if_too_bad,
     },
 
     POLYGON:{
         name: 'Polygon x 6',
         make_scenes_fun: ()=> repeat('Blob',6),
         key: 'polygonx6',
-        evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition: stop_if_too_bad,
     },
 
     CIRCLE:{
         name: 'Circle',
         make_scenes_fun: ()=> repeat('Circle',12),
         key: 'circlex12',
-        evaluate_loss_condition: stop_if_too_bad
+        evaluate_loss_condition: stop_if_too_bad,
+        description: '12 circle exercises',
     },
     SQUARE:{
         name: 'Rectangle',
         make_scenes_fun: ()=> repeat('Square',12),
         key: 'squarex12',
-        evaluate_loss_condition: stop_if_too_bad 
+        evaluate_loss_condition: stop_if_too_bad,
+        description: '12 rectangles exercises',
     },
 
 }
 
-const BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR']
 
 
 
@@ -666,7 +670,7 @@ function create_random_scenes_sequence(repetitions_per_game, scenes)
     }
     scenes.forEach(add)
     random_scenes = Phaser.Math.RND.shuffle(random_scenes);
-    console.log('random scenes ', random_scenes)
+    //console.log('random scenes ', random_scenes)
     return random_scenes;
 }
 
@@ -698,7 +702,7 @@ function make_scene_setup(scene)
         .setFontSize(DEFAULT_FONT_SIZE)
         .setFontFamily(FONT_FAMILY)
         .setAlign('center')
-        .setOrigin(0.5,0)
+        .setOrigin(0.5,1.0)
 
     scene.center_top_text = scene.add.text(CENTER_TOP.x, CENTER_TOP.y)
         .setFontSize(DEFAULT_FONT_SIZE)
@@ -1009,9 +1013,12 @@ class Menu extends Phaser.Scene {
                 var scores = Object.entries(querySnapshot.data()).map((x)=> {
                         var uid = x[0]
                         var score = JSON.parse(x[1])
-                        score.uuid = uid;
+                        score.uid = uid;
                         return score
                     })
+                var best = _.chain(scores).orderBy('score','desc').first().value()||{score:0};
+                var own = _.chain(scores).filter((x)=>x.uid==FIREBASE_USER.uid).first().value()||{score:0};
+                text.setText(text.text+`(${own.score}/${best.score})`)
                 })
             .catch(function(error) {
                 console.error("Error adding document: ", error);
@@ -1021,20 +1028,24 @@ class Menu extends Phaser.Scene {
             //could chain this portion because I could not refer the text in the callback
             const make_sample= (level)=>
             {
-                GRAPHICS.clear()
-                GRAPHICS.translateCanvas(CENTER.x-(LENGTH*0.5), LIST_HEIGHT);
-
-                GRAPHICS.scaleCanvas(1.4,1.4);
-                const name = level.make_scenes_fun()[0];
-                const config = get_config_by_name(name);
-                config.draw_reference(config.make_data())
-                GRAPHICS.lineStyle(1, WHITE, 0.2);
-                GRAPHICS.strokeRectShape(reference_frame);
-
-
+                const make_miniature= ()=>
+                {
+                    GRAPHICS.clear()
+                    GRAPHICS.translateCanvas(CENTER.x-(LENGTH*0.5), LIST_HEIGHT);
+                    GRAPHICS.scaleCanvas(1.4,1.4);
+                    const name = level.make_scenes_fun()[0];
+                    const config = get_config_by_name(name);
+                    config.draw_reference(config.make_data())
+                    GRAPHICS.lineStyle(1, WHITE, 0.2);
+                    GRAPHICS.strokeRectShape(reference_frame);
+                };
+                make_miniature()
             }
             text
-                .on('pointerover',(pointer, localX, localY, event)=> {make_sample(level);text.setColor(RED_TEXT)})
+                .on('pointerover',(pointer, localX, localY, event)=> {
+                    make_sample(level);text.setColor(RED_TEXT)
+                    scene.center_bottom_text.setText(level.description||'')
+                    })
                 .on('pointerout',(pointer, localX, localY, event)=> {text.setColor(WHITE_TEXT)})
             })
     }
