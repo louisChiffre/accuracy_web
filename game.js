@@ -925,7 +925,7 @@ class End extends Phaser.Scene {
         {
             scene.add.text()
             .setFontSize(DEFAULT_FONT_SIZE)
-            .setText(`PERSONAL TOP ${MAX_SCORE}`)
+            .setText(`  PERSONAL TOP ${MAX_SCORE}`)
             _.take(result.sessions,MAX_SCORE).map((x,i)=>{
                 scene.add.text()
                 .setFontSize(DEFAULT_FONT_SIZE)
