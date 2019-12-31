@@ -14,7 +14,7 @@ never =  function(stats)
                 has_lost: false
             }
 }
-const BASE_LEVEL_NAMES = ['DEV','CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'TRAINING']
+var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'TRAINING']
 LEVELS =
 {
     DEV:
@@ -1023,10 +1023,15 @@ class Menu extends Phaser.Scene {
             repeat:-1
         });
 
-        var LIST_HEIGHT = DEFAULT_FONT_SIZE*(BASE_LEVEL_NAMES.length+5)
+        var level_names = BASE_LEVEL_NAMES;
+        if (FIREBASE_USER.uid=="WrZSvoWRIZTHOoPZ5tB4Z2xgztY2")
+        {
+            level_names = level_names.concat('DEV')
+        }
+        var LIST_HEIGHT = DEFAULT_FONT_SIZE*(level_names.length+5)
         var reference_frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH)
 
-        BASE_LEVEL_NAMES.map(name=>LEVELS[name]).map((level,i) => {
+        level_names.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
             .setPosition(CENTER_TOP.x, CENTER_TOP.y+(i+2)*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
