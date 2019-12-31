@@ -298,16 +298,20 @@ function polygon_pointerdown(pointer, data, scene)
     gameObject._point.y = dragY - PLAYER_ORIGIN.y;
 
 }
+const polygon_instructions_without_editing =  [
+        'Use mouse to control last point', 
+        'Left-click to freeze current point', 
+        'Click on the first point to close polygon']
+
+const polygon_instructions = polygon_instructions_without_editing.concat(['Once closed, single point can be dragged and dropped by holding left button'])
+
+
 
 
 var blob_config = {
     name: 'Blob',
     eval_name: 'EvalBlob',
-    control_help_instructions: [
-        'Use mouse to control last point', 
-        'Left-click to freeze current point', 
-        'Click on the first point to close polygon', 
-        'Once closed, single point can be dragged and dropped by holding left button'],
+    control_help_instructions:polygon_instructions ,
     make_data: function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
@@ -369,6 +373,7 @@ var quad_config_hard = {...blob_config, ...quad_config}
 delete quad_config_hard.drag
 quad_config_hard.name = 'QuadHard'
 quad_config_hard.eval_name = 'EvalQuadHard'
+quad_config_hard.control_help_instructions = polygon_instructions_without_editing
 
 
 var quad_space_config = {
