@@ -14,7 +14,7 @@ never =  function(stats)
                 has_lost: false
             }
 }
-const BASE_LEVEL_NAMES = ['DEV','CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'TRAINING']
+const BASE_LEVEL_NAMES = ['DEV','CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'TRAINING']
 LEVELS =
 {
     DEV:
@@ -46,10 +46,12 @@ LEVELS =
 
     QUAD_WO_FRAME:
     {
-        name: 'Quad Without Frame x 12',
+        name: 'Quadrilateral Hard',
         make_scenes_fun: ()=> repeat('QuadSpace',12),
         key: 'quad_wo_framex12',
         evaluate_loss_condition:  never,
+        description: '12 quadrilaterals exercises where edges cannot be moved once set'
+
     },
 
     QUAD:{
