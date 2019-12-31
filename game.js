@@ -48,7 +48,7 @@ LEVELS =
     {
         name: 'Quadrilateral Hard',
         make_scenes_fun: ()=> repeat('QuadSpace',12),
-        key: 'quad_wo_framex12',
+        key: 'quad_wo_frame_and_corrx12',
         evaluate_loss_condition:  never,
         description: '12 quadrilaterals exercises where edges cannot be moved once set'
 
@@ -164,7 +164,7 @@ function extract_regex_from_session_id(session_id)
     var x = session_id.split('__')
     if (x.length==1)
         return /\d$/
-    return new RegExp(`__${x[1]}`)
+    return new RegExp(`__${x[1]}$`)
 
 }
 
