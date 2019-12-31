@@ -1,6 +1,7 @@
 function make_help_text(control_help_instructions, space_bar_action)
 {
-    return ['ORIENTATION'].concat(control_help_instructions.concat([`Hit Space Bar to ${space_bar_action}`]).map((x)=>' -' + x)).join('\n')
+    var lines = control_help_instructions.concat([`Hit Space Bar to ${space_bar_action}`]).map((x)=>'  * ' + x)
+    return ['ORIENTATION: Reproduce white figure below'].concat(lines).join('\n')
 }
 
 function make_random_square(min_height, max_height, min_width, max_width)
