@@ -56,7 +56,7 @@ LEVELS =
 
     QUAD_HARD_TIMED:
     {
-        name: 'Quadrilateral Flex 5',
+        name: 'Quadrilateral Turbo',
         make_scenes_fun: ()=> repeat('QuadSpaceTimer',12),
         key: 'quad_wo_frame_and_corr5x12',
         evaluate_loss_condition:  never,
