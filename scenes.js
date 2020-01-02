@@ -386,12 +386,24 @@ var quad_space_config = {
 }
 quad_space_config = {...quad_config_hard, ...quad_space_config}
 
+var quad_space_timer_config = { ...quad_space_config, ...
+{
+    name: 'QuadSpaceTimer',
+    eval_name: 'EvalQuadSpaceTimer',
+    max_time_s:5 
+}
+}
+
+
+
 var quad_space_config_w_corr = {
     name: 'QuadSpaceWCorr',
     eval_name: 'EvalQuadSpaceWCorr',
     drag : polygon_drag
 }
 quad_space_config_w_corr = {...quad_space_config, ...quad_space_config_w_corr}
+
+
 
 
 var free_config = {

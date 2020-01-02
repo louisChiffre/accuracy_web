@@ -14,14 +14,14 @@ never =  function(stats)
                 has_lost: false
             }
 }
-var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'TRAINING']
+var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'QUAD_HARD_TIMED', 'TRAINING']
 LEVELS =
 {
     DEV:
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(2 ,['CircleTimer']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpaceTimer']),
         evaluate_loss_condition:  never,
         description: 'Just for dev purpose',
     },
@@ -51,6 +51,16 @@ LEVELS =
         key: 'quad_wo_frame_and_corrx12',
         evaluate_loss_condition:  never,
         description: '12 quadrilaterals exercises where edges cannot be moved once set'
+
+    },
+
+    QUAD_HARD_TIMED:
+    {
+        name: 'Quadrilateral Flex 5',
+        make_scenes_fun: ()=> repeat('QuadSpaceTimer',12),
+        key: 'quad_wo_frame_and_corr5x12',
+        evaluate_loss_condition:  never,
+        description: '12 quadrilaterals exercises with 5 second timer'
 
     },
 
@@ -113,7 +123,7 @@ LEVELS =
 
 const CONFIGS = [
     triangle_config, blob_config, circle_config, square_config, circle_config_with_timer, 
-    proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr]
+    proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr, quad_space_timer_config]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP = firebase.initializeApp(firebase_config);
