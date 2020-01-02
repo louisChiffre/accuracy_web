@@ -122,6 +122,7 @@ var FIREBASE_USER;
 var FIREBASE_DB;
 
 var USER_INFO;
+var LEADERBOARDS;
 
 
 const BORDER = 10;
@@ -274,9 +275,38 @@ class SessionManager
 
 const get_config_by_name= (level_name)=> CONFIGS.find(({ name }) => name === level_name )
 
-const get_firestore_leaderboard_ref=(key)=>FIREBASE_DB.collection('leaderboards').doc(key)
+const get_firestore_leaderboards=()=>FIREBASE_DB.collection('leaderboards')
+const get_firestore_leaderboard_ref=(key)=>get_firestore_leaderboards().doc(key)
 const get_firestore_user_ref=()=>FIREBASE_DB.collection('users').doc(FIREBASE_USER.uid)
 const get_firestore_stats_collection=()=>get_firestore_user_ref().collection('stats')
+
+
+function parse_leaderboard_data(querySnapshot)
+{
+    return Object.entries(querySnapshot.data()).map((x)=> {
+            var uid = x[0]
+            var score = JSON.parse(x[1])
+            score.uid = uid;
+            return score
+        })
+}
+
+function get_leader_boards(level_names)
+{
+    var keys = get_level_names().map((level_name)=>LEVELS[level_name].key);
+    return get_firestore_leaderboards().get().then(function(querySnapshot)
+    {
+        var data = {};
+        querySnapshot.forEach( (x)=>{
+            var z = parse_leaderboard_data(x)
+            if(keys.includes(x.id)) {
+                data[x.id] = _.chain(z).orderBy('score','desc').value() }
+            })
+        return data
+    }
+    )
+
+}
 
 function remove_duplicates(stats)
 {
@@ -866,11 +896,15 @@ class Start extends Phaser.Scene {
                     return read_input_name(x).then(update_user_info)
                 })
                 var stats = sync_stats()
+                var leaderboards = get_leader_boards(get_level_names())
 
-                Promise.all([user_info, stats]).then(function(objects)
+
+                Promise.all([user_info, stats, leaderboards]).then(function(objects)
                 {
                     var user_info = objects[0] 
                     var stats = objects[1]
+                    LEADERBOARDS = objects[2]
+
                     USER_INFO = user_info
                     scene.center_bottom_text.setText(`Hello ${user_info.name}!`)
                     scene.center_top_text.setText(`${stats.length} exercises loaded`)
@@ -944,13 +978,11 @@ class End extends Phaser.Scene {
 
 
         var key = extract_session_key(session_id);
+
+    
+
         get_firestore_leaderboard_ref(key).get().then( function(querySnapshot) {
-            var scores = Object.entries(querySnapshot.data()).map((x)=> {
-                    var uid = x[0]
-                    var score = JSON.parse(x[1])
-                    score.uid = uid;
-                    return score
-                })
+            var scores = parse_leaderboard_data(querySnapshot)
             var best = _.chain(scores).orderBy('score','desc').first().value()||{score:0};
             var own = _.chain(scores).filter((x)=>x.uid==FIREBASE_USER.uid).first().value()||{score:0};
             if(best.score>0)
@@ -1004,6 +1036,14 @@ class End extends Phaser.Scene {
     {
     }
 }
+const get_level_names= ()=>{
+    var level_names = BASE_LEVEL_NAMES;
+    if (FIREBASE_USER.uid=="WrZSvoWRIZTHOoPZ5tB4Z2xgztY2")
+    {
+        level_names = level_names.concat('DEV')
+    }
+    return level_names
+}
 
 class Menu extends Phaser.Scene {
     constructor(config) {
@@ -1023,13 +1063,14 @@ class Menu extends Phaser.Scene {
             repeat:-1
         });
 
-        var level_names = BASE_LEVEL_NAMES;
-        if (FIREBASE_USER.uid=="WrZSvoWRIZTHOoPZ5tB4Z2xgztY2")
-        {
-            level_names = level_names.concat('DEV')
-        }
+        var level_names = get_level_names()
         var LIST_HEIGHT = DEFAULT_FONT_SIZE*(level_names.length+5)
         var reference_frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH)
+        var description_text = scene.add.text(CENTER.x, LIST_HEIGHT + HEIGHT/2+DEFAULT_FONT_SIZE)
+            .setFontSize(DEFAULT_FONT_SIZE)
+            .setFontFamily(FONT_FAMILY)
+            .setAlign('center')
+            .setOrigin(0.5,1.0)
 
         level_names.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
@@ -1042,22 +1083,6 @@ class Menu extends Phaser.Scene {
                 scene.scene.start(SESSION_MANAGER.next_scene_name());
                 })
 
-            /*
-            get_firestore_leaderboard_ref(level.key).get().then( function(querySnapshot) {
-                var scores = Object.entries(querySnapshot.data()).map((x)=> {
-                        var uid = x[0]
-                        var score = JSON.parse(x[1])
-                        score.uid = uid;
-                        return score
-                    })
-                var best = _.chain(scores).orderBy('score','desc').first().value()||{score:0};
-                var own = _.chain(scores).filter((x)=>x.uid==FIREBASE_USER.uid).first().value()||{score:0};
-                text.setText(text.text+`(${own.score}/${best.score})`)
-                })
-            .catch(function(error) {
-                console.error("Error adding document: ", error);
-            });
-            */
 
             //could chain this portion because I could not refer the text in the callback
             const make_sample= (level)=>
@@ -1066,19 +1091,24 @@ class Menu extends Phaser.Scene {
                 {
                     GRAPHICS.clear()
                     GRAPHICS.translateCanvas(CENTER.x-(LENGTH*0.5), LIST_HEIGHT);
-                    GRAPHICS.scaleCanvas(1.4,1.4);
+                    GRAPHICS.scaleCanvas(1,1);
                     const name = level.make_scenes_fun()[0];
                     const config = get_config_by_name(name);
                     config.draw_reference(config.make_data())
                     GRAPHICS.lineStyle(1, WHITE, 0.2);
                     GRAPHICS.strokeRectShape(reference_frame);
+                    description_text.setText(level.description||'')
                 };
                 make_miniature()
             }
             text
                 .on('pointerover',(pointer, localX, localY, event)=> {
                     make_sample(level);text.setColor(RED_TEXT)
-                    scene.center_bottom_text.setText(level.description||'')
+                    var leaderboard = LEADERBOARDS[level.key]||[];
+                    scene.center_bottom_text.setAlign('left').setText(
+                        'LEADERBOARD\n' +
+                        '-----------\n'  +
+                        leaderboard.map((x,i)=>`${i+1}. ${(x.score*100).toFixed(2)} ${x.user}`).join('\n'))
                     })
                 .on('pointerout',(pointer, localX, localY, event)=> {text.setColor(WHITE_TEXT)})
             })
