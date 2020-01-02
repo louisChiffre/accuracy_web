@@ -896,14 +896,13 @@ class Start extends Phaser.Scene {
                     return read_input_name(x).then(update_user_info)
                 })
                 var stats = sync_stats()
-                var leaderboards = get_leader_boards(get_level_names())
+                var leaderboards = get_leader_boards(get_level_names()).then((x)=>{LEADERBOARDS=x})
 
 
                 Promise.all([user_info, stats, leaderboards]).then(function(objects)
                 {
                     var user_info = objects[0] 
                     var stats = objects[1]
-                    LEADERBOARDS = objects[2]
 
                     USER_INFO = user_info
                     scene.center_bottom_text.setText(`Hello ${user_info.name}!`)
@@ -1008,7 +1007,7 @@ class End extends Phaser.Scene {
                 extract_session_key(session_id), 
                 JSON.stringify({score:session_stat.mean, time:session_stat.time, user:USER_INFO.name}),
                 FIREBASE_USER.uid)
-
+            get_leader_boards(get_level_names()).then((x)=>{LEADERBOARDS=x})
         }
 
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
