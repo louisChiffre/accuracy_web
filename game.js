@@ -763,6 +763,13 @@ function make_scene_setup(scene)
         .setFontStyle('bold')
         .setFontFamily(FONT_FAMILY);
 
+    //scene.countdown_text = scene.add.text(
+    //    STATS_ORIGIN.x+100, STATS_ORIGIN.y, '')
+    //    .setFontSize(64)
+    //    .setFontStyle('bold')
+    //    .setFontFamily(FONT_FAMILY);
+
+
     scene.list_text = scene.add.text(
         PLAYER_ORIGIN.x, PLAYER_ORIGIN.y, '')
         .setFontSize(DEFAULT_FONT_SIZE)

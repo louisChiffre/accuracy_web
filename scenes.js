@@ -1,3 +1,4 @@
+const MAX_TIMER_S = 360000
 function make_help_text(control_help_instructions, space_bar_action)
 {
     var lines = control_help_instructions.concat([`Hit Space Bar to ${space_bar_action}`]).map((x)=>'  * ' + x)
@@ -808,7 +809,7 @@ class InputScene extends Phaser.Scene {
             }
         }, this);
 
-        var max_time_s = config.max_time_s||3600;
+        var max_time_s = config.max_time_s||MAX_TIMER_S;
         console.log('we will stop after ',max_time_s);
         var scene = this;
         const start_eval_scene = ()=>scene.scene.start(scene.data_.config.eval_name, scene.data_)
@@ -867,6 +868,12 @@ class InputScene extends Phaser.Scene {
         GRAPHICS.save();
         GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
+        if (this.data_.config.max_time_s<MAX_TIMER_S)
+        {
+            var dt = this.data_.config.max_time_s - this.logging_timer.getElapsedSeconds();
+            var txt =moment.utc(moment.duration(dt,'seconds').asMilliseconds()).format('s')
+            this.score_text.setText(txt)
+        }
         GRAPHICS.restore();
 
     }
