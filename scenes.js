@@ -170,7 +170,7 @@ function draw_polygon_evaluation(data)
 }
 
 
-function align_player_points(player_points, reference_points)
+function align_player_points_deprecated(player_points, reference_points)
 {
     var distance = (p) => p.x**2 + p.y**2
     var pl = _.minBy(player_points, distance)
@@ -181,22 +181,51 @@ function align_player_points(player_points, reference_points)
     return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
 }
 
-
-
-// not used be cause it average out difference
-function align_player_points_centroid(player_points, reference_points)
+function align_player_points(player_points, reference_points)
 {
-    var player_x = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.x)) 
-    var player_y = Phaser.Math.Average(player_points.slice(0,4).map((x)=>x.y))
+    var height = (p) => p.y
+    var width  = (p) => p.x
 
-    var ref_x = Phaser.Math.Average(reference_points.slice(0,4).map((x)=>x.x)) 
-    var ref_y = Phaser.Math.Average(reference_points.slice(0,4).map((x)=>x.y)) 
+    function dispersion(func)
+    {
+        var z = _.chain(reference_points).map(func).sortBy().value();
+        return _.slice(z,1,4).map(x=>x-z[0]).reduce((a,b)=>a+b,0)
 
-    var dx = ref_x - player_x
-    var dy = ref_y - player_y
+    }
+    var dw = dispersion(width);
+    var dh = dispersion(height);
+
+    var distance = dw>dh? width:height;
+    
+    var pl = _.minBy(player_points, distance)
+    var ref = _.minBy(reference_points, distance) 
+
+    var dx = ref.x - pl.x
+    var dy = ref.y - pl.y
     return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
 }
 
+
+
+function align_player_points_(player_points, reference_points)
+{
+    var player = calculate_centroid(player_points);
+    var ref = calculate_centroid(reference_points);
+    var dx = ref[0] - player[0]
+    var dy = ref[1] - player[1]
+    return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
+}
+
+function calculate_centroid(points)
+{
+    var p = points.map((z)=>[z.x,z.y]);
+    var triangles = _.chunk(Delaunay.triangulate(p).map((k)=>p[k]),3).map((z)=>new Phaser.Geom.Triangle(...z.flat()))
+    var centroids = triangles.map((x)=>Phaser.Geom.Triangle.Centroid(x));
+    var areas = triangles.map(Phaser.Geom.Triangle.Area); 
+    var area = areas.reduce((a,b)=>a+b,0)
+    var w = areas.map(x=>x/area)
+    return _.zip(centroids, w).map(z=>[z[0].x*z[1],z[0].y*z[1]]).reduce((a,b)=> [a[0]+b[0],a[1]+b[1]], [0,0])
+}
 
 function draw_polygon_evaluation_centered(data)
 {

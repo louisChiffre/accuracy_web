@@ -315,7 +315,6 @@ function get_leader_boards(level_names)
         return data
     }
     )
-
 }
 
 function remove_duplicates(stats)
