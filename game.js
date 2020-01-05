@@ -211,6 +211,7 @@ class SessionManager
         // starting state is START
         this.state = 'START'
         this.level_config = level;
+        PREV_LEVEL = level;
     }
 
 
@@ -1103,16 +1104,29 @@ class Menu extends Phaser.Scene {
             .setAlign('center')
             .setOrigin(0.5,1.0)
 
+
+        const start_level = (level)=>
+        {
+            SESSION_MANAGER = new SessionManager(level);
+            scene.scene.start(SESSION_MANAGER.next_scene_name());
+        }
+
+        scene.input.keyboard.on('keydown_SPACE', function (event)
+        {
+            if (PREV_LEVEL != undefined)
+            {
+                start_level(PREV_LEVEL)
+            }
+
+        }, scene);
+
         level_names.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
             .setPosition(CENTER_TOP.x, CENTER_TOP.y+(i+2)*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
             .setOrigin(0.5,0)
             .setInteractive()
-            .on('pointerdown', function(pointer, localX, localY, event){
-                SESSION_MANAGER = new SessionManager(level)
-                scene.scene.start(SESSION_MANAGER.next_scene_name());
-                })
+            .on('pointerdown', function(pointer, localX, localY, event){ start_level(level) })
 
 
             //could chain this portion because I could not refer the text in the callback
@@ -1171,6 +1185,7 @@ function get_display_name()
 
 
 var SESSION_MANAGER;
+var PREV_LEVEL;
 
 
 // let's start
