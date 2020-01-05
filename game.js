@@ -1023,7 +1023,7 @@ class End extends Phaser.Scene {
 
         //list scores of the session
         var session_stat = result.sessions[result.rank]
-        var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
+        var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(2)}`)
         list_strings.unshift(`Session Score   \n`)
         list_strings.push(   `----------------`)
         list_strings.push(`${'Average'.padEnd(10)} ${(100*session_stat.mean).toFixed(1)}`)

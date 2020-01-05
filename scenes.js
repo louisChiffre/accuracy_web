@@ -292,8 +292,19 @@ function polygon_pointermove(pointer, data)
 
 }
 
+let LAST_CLICK_TIME = 0;
+const DOUBLE_CLICK_TRESHOLD_MS = 350
+
 function polygon_pointerdown(pointer, data, scene)
 {
+    let click_delay = scene.time.now - LAST_CLICK_TIME;
+    let is_double_click = (click_delay < DOUBLE_CLICK_TRESHOLD_MS) ? true: false;
+    LAST_CLICK_TIME = scene.time.now;
+    if (is_double_click)
+    {
+        return
+    }
+
     if (pointer.buttons==1) //4 is for the middle button
     {
         //check if we didnt closed the polygon
