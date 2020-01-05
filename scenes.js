@@ -102,7 +102,12 @@ function make_random_shape()
 
 function get_player_relative_position(pointer)
 {
-    return new Phaser.Geom.Point(pointer.x - PLAYER_ORIGIN.x, pointer.y - PLAYER_ORIGIN.y);
+    var x = pointer.x - PLAYER_ORIGIN.x;
+    var y = pointer.y - PLAYER_ORIGIN.y;
+    // we want to prevent the to use the reference canvas
+    x = Math.max(-LENGTH/3 ,x); 
+    y = Math.max(-LENGTH/3, y);
+    return new Phaser.Geom.Point(x, y);
 }
 
 function draw_player_frame(data)
