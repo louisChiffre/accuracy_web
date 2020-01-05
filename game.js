@@ -21,7 +21,7 @@ LEVELS =
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(1 ,['QuadSpaceTimer']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(1 ,['QuadSpace2Timer']),
         evaluate_loss_condition:  never,
         description: 'Just for dev purpose',
     },
@@ -30,7 +30,7 @@ LEVELS =
     {
         name: 'Training',
         key: 'training_1',
-        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpaceWCorr']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpaceWCorr2']),
         evaluate_loss_condition:  never,
         description: '15 exercises selected randomly',
 
@@ -38,7 +38,7 @@ LEVELS =
     QUAD_WO_FRAME_W_COR:
     {
         name: 'Quadrilateral',
-        make_scenes_fun: ()=> repeat('QuadSpaceWCorr',12),
+        make_scenes_fun: ()=> repeat('QuadSpaceWCorr2',12),
         key: 'quad_wo_frame_w_corrx12',
         evaluate_loss_condition:  never,
         description: '12 quadrilaterals exercises'
@@ -47,7 +47,7 @@ LEVELS =
     QUAD_WO_FRAME:
     {
         name: 'Quadrilateral Hard',
-        make_scenes_fun: ()=> repeat('QuadSpace',12),
+        make_scenes_fun: ()=> repeat('QuadSpace2',12),
         key: 'quad_wo_frame_and_corrx12',
         evaluate_loss_condition:  never,
         description: '12 quadrilaterals exercises where edges cannot be moved once set'
@@ -57,7 +57,7 @@ LEVELS =
     QUAD_HARD_TIMED:
     {
         name: 'Quadrilateral Turbo',
-        make_scenes_fun: ()=> repeat('QuadSpaceTimer',12),
+        make_scenes_fun: ()=> repeat('QuadSpace2Timer',12),
         key: 'quad_wo_frame_and_corr5x12',
         evaluate_loss_condition:  never,
         description: '12 quadrilaterals exercises with 5 second timer'

@@ -186,7 +186,7 @@ function align_player_points_deprecated(player_points, reference_points)
     return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
 }
 
-function align_player_points(player_points, reference_points)
+function align_player_points_fixed_points(player_points, reference_points)
 {
     var height = (p) => p.y
     var width  = (p) => p.x
@@ -212,7 +212,7 @@ function align_player_points(player_points, reference_points)
 
 
 
-function align_player_points_(player_points, reference_points)
+function align_player_points(player_points, reference_points)
 {
     var player = calculate_centroid(player_points);
     var ref = calculate_centroid(reference_points);
@@ -424,8 +424,8 @@ quad_config_hard.control_help_instructions = polygon_instructions_without_editin
 
 
 var quad_space_config = {
-    name: 'QuadSpace',
-    eval_name: 'EvalQuadSpace',
+    name: 'QuadSpace2',
+    eval_name: 'EvalQuadSpace2',
     draw_evaluation: draw_polygon_evaluation_centered,
     draw_player_evaluation: draw_polygon_player_centered,
     draw_player: draw_polygon_player_wo_frame 
@@ -434,8 +434,8 @@ quad_space_config = {...quad_config_hard, ...quad_space_config}
 
 var quad_space_timer_config = { ...quad_space_config, ...
 {
-    name: 'QuadSpaceTimer',
-    eval_name: 'EvalQuadSpaceTimer',
+    name: 'QuadSpace2Timer',
+    eval_name: 'EvalQuadSpace2Timer',
     max_time_s:5 
 }
 }
@@ -443,8 +443,8 @@ var quad_space_timer_config = { ...quad_space_config, ...
 
 
 var quad_space_config_w_corr = {
-    name: 'QuadSpaceWCorr',
-    eval_name: 'EvalQuadSpaceWCorr',
+    name: 'QuadSpaceWCorr2',
+    eval_name: 'EvalQuadSpaceWCorr2',
     drag : polygon_drag
 }
 quad_space_config_w_corr = {...quad_space_config, ...quad_space_config_w_corr}
