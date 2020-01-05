@@ -352,13 +352,35 @@ function get_user_info()
     })
 }
 
+var LOCAL_STATS = []
+
 function read_local_stats()
 {
-    var data = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
-    console.log(`${data.length} stat read from local storage`);
-    return data;
+    // var data = JSON.parse(localStorage.getItem(FIREBASE_USER.uid))||[];
+    console.log(`${LOCAL_STATS.length} stat read from local storage`);
+    // return data;
+    return LOCAL_STATS;
 
 }
+
+function save_local_stats(stats)
+{
+    //console.log(`saving ${stats.length} points to local store`)
+    //localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
+    LOCAL_STATS = stats;
+}
+
+function update_local_stats(stat)
+{
+    console.time('update local stats')
+    var stats = read_local_stats();
+    stats.push(stat)
+    save_local_stats(stats);
+    console.timeEnd('update local stats')
+    return stats
+}
+
+
 
 function get_session_stats(session_id)
 {
@@ -368,11 +390,6 @@ function get_session_stats(session_id)
     return stats.filter((x)=>x.session_id==session_id)
 }
 
-function save_local_stats(stats)
-{
-    console.log(`saving ${stats.length} points to local store`)
-    localStorage.setItem(FIREBASE_USER.uid, JSON.stringify(stats));
-}
 
 function save_stat_firestore(stat)
 {
@@ -469,9 +486,6 @@ async function sync_stats()
     var stats = remove_duplicates(combined_stats)
 
     m = array2maparray(stats, 'session_id');
-    //var stats_pairs = _.partition(stats, (x)=>_.isInteger(x.session_id))
-    //var stats_ = stats_pairs[0].map((x)=>_.assign(x,{'session_id':`${x.session_id}__training`}))
-    //stats = stats_pairs[1].concat(stats_)
 
     console.log(`combined stats shrunk from ${combined_stats.length} to ${stats.length}`)
     save_local_stats(stats);
@@ -501,13 +515,7 @@ async function sync_stats()
 
 }
 
-function update_local_stats(stat)
-{
-    var stats = read_local_stats();
-    stats.push(stat)
-    save_local_stats(stats);
-    return stats
-}
+
 function calculate_stats(stats)
 {
     var scores =stats.map(x=>x.score);
