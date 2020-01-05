@@ -21,7 +21,7 @@ LEVELS =
     {
         name: 'Dev',
         key: 'dev',
-        make_scenes_fun: ()=>create_random_scenes_sequence(12 ,['QuadSpaceTimer']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(1 ,['QuadSpaceTimer']),
         evaluate_loss_condition:  never,
         description: 'Just for dev purpose',
     },
@@ -386,11 +386,11 @@ function save_stat_firestore(stat)
     });
 }
 
-function save_score_firestore(game_key, game_score, user_name)
+function save_highscore_firestore(game_key, game_score, user_name)
 {
     console.log(`save score [${game_score}] for game [${game_key}] for user [${user_name}]`);
     var data = {[user_name]: game_score}
-    get_firestore_leaderboard_ref(game_key).set(
+    return get_firestore_leaderboard_ref(game_key).set(
         {[user_name]: game_score},
         {merge:true})
     .then(function(docRef) {
@@ -400,8 +400,6 @@ function save_score_firestore(game_key, game_score, user_name)
         console.error("Error updating document: ", error);
     });
 }
-
-
 
 
 function read_stat_firestore()
@@ -976,6 +974,7 @@ class End extends Phaser.Scene {
         
         var result = rank_sessions(all_stats, session_id);
         const MAX_SCORE=30;
+        
         // list personal scores
         const make_personal_leaderboard = ()=>
         {
@@ -1000,7 +999,7 @@ class End extends Phaser.Scene {
         var key = extract_session_key(session_id);
 
     
-
+        // display best score at the bottom
         get_firestore_leaderboard_ref(key).get().then( function(querySnapshot) {
             var scores = parse_leaderboard_data(querySnapshot)
             var best = _.chain(scores).orderBy('score','desc').first().value()||{score:0};
@@ -1014,22 +1013,8 @@ class End extends Phaser.Scene {
             console.error("Error adding document: ", error);
         });
 
-
-
-
-
+        //list scores of the session
         var session_stat = result.sessions[result.rank]
-        
-        //if it's our best we save it 
-        if(result.rank==0)
-        {
-            console.log('saving highscore to leaderboard');
-            save_score_firestore(
-                extract_session_key(session_id), 
-                JSON.stringify({score:session_stat.mean, time:session_stat.time, user:USER_INFO.name}),
-                FIREBASE_USER.uid)
-        }
-
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(1)}`)
         list_strings.unshift(`Session Score   \n`)
         list_strings.push(   `----------------`)
@@ -1037,9 +1022,27 @@ class End extends Phaser.Scene {
         var list_text = list_strings.join('\n');
         this.help_text.setText(list_text)
         
-        var scene = this;
-        sync_stats().then(function(stats)
+        //if it's our best we save it 
+        var save_highscore;
+        if(result.rank==0)
         {
+            console.log('saving highscore to leaderboard');
+            save_highscore = save_highscore_firestore(
+                extract_session_key(session_id), 
+                JSON.stringify({score:session_stat.mean, time:session_stat.time, user:USER_INFO.name}),
+                FIREBASE_USER.uid);
+        }
+        else
+        {
+            save_highscore = Promise.resolve(undefined)
+        }
+
+        
+        var scene = this;
+
+        Promise.all([save_highscore, sync_stats()]).then(function(objects)
+        {
+            var stats = objects[1]
             scene.list_text.setText(`We are done. ${stats.length} exercises saved.\nHit space bar to continue`)
             scene.input.keyboard.on('keydown_SPACE', function (event)
 
@@ -1047,6 +1050,7 @@ class End extends Phaser.Scene {
                 this.scene.start(SESSION_MANAGER.next_scene_name());
 
             }, scene);
+
         })
 
 
