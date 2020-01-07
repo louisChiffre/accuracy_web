@@ -152,7 +152,7 @@ function draw_polygon_player_centered(data)
     {
         var player_points = data.player.polygon.points
         var reference_points = data.reference.points
-        var points = align_player_points(player_points, reference_points)
+        var points = align_player_points_fixed_points(player_points, reference_points)
 
         GRAPHICS.lineStyle(1, RED, 1.0);
         GRAPHICS.strokePoints(points);
