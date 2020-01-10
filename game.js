@@ -1,4 +1,51 @@
+
+const WHITE=0xFFFFFF;
+const RED=0xFF0000;
+const GREEN=0x00FF00;
+
+const RED_TEXT='#ff0000';
+const WHITE_TEXT='#ffffff';
+
+const FONT_FAMILY = 'monospace';
+const DEFAULT_FONT_SIZE = 16;
+//var FONT_FAMILY = 'battle';
+//var DEFAULT_FONT_SIZE = 14;
+
+
+//layout constants 
+const BORDER = 10;
+const WIDTH = 800;
+const HEIGHT = 800;
+const BOTTOM_BORDER = 100;
+const FRAME = 25 
+
+// roughly the size of a panel
+const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)/2))
+
+//centers 
+const CENTER = {x:LENGTH+FRAME, y:LENGTH+FRAME}
+const CENTER_TOP = {x:CENTER.x, y:BORDER}
+const CENTER_BOTTOM = {x:CENTER.x, y:HEIGHT+(BOTTOM_BORDER*0.8)}
+
+//reference of player and reference frame
+const REFERENCE_ORIGIN ={x:FRAME,y:FRAME}
+const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
+
+const STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
+const HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
+const PLAYER_NAME_ORIGIN = {x:CENTER.x, y:2*LENGTH};
+const SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
+
+
+// default timer
 const MAX_TIMER_S = 360000
+
+
+// double click variables
+let LAST_CLICK_TIME = 0;
+const DOUBLE_CLICK_TRESHOLD_MS = 350
+
+
 function make_help_text(control_help_instructions, space_bar_action)
 {
     var lines = control_help_instructions.concat([`Hit Space Bar to ${space_bar_action}`]).map((x)=>'  * ' + x)
@@ -292,8 +339,6 @@ function polygon_pointermove(pointer, data)
 
 }
 
-let LAST_CLICK_TIME = 0;
-const DOUBLE_CLICK_TRESHOLD_MS = 350
 
 function polygon_pointerdown(pointer, data, scene)
 {
@@ -1065,37 +1110,6 @@ var USER_INFO;
 var LEADERBOARDS;
 
 
-const BORDER = 10;
-const WIDTH = 800;
-const HEIGHT = 800;
-const BOTTOM_BORDER = 100;
-
-const WHITE=0xFFFFFF;
-const RED=0xFF0000;
-const GREEN=0x00FF00;
-
-const RED_TEXT='#ff0000';
-const WHITE_TEXT='#ffffff';
-
-const FONT_FAMILY = 'monospace';
-const DEFAULT_FONT_SIZE = 16;
-//var FONT_FAMILY = 'battle';
-//var DEFAULT_FONT_SIZE = 14;
-
-
-// roughly the size of a panel
-const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)-BORDER)/2)
-const CENTER = {x:(WIDTH+BOTTOM_BORDER)/2, y:(HEIGHT+BOTTOM_BORDER)/2}
-const CENTER_TOP = {x:CENTER.x, y:BORDER}
-const CENTER_BOTTOM = {x:CENTER.x, y:HEIGHT+(BOTTOM_BORDER*0.8)}
-
-const REFERENCE_ORIGIN ={x:3,y:3}
-const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
-const STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
-const HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
-const PLAYER_NAME_ORIGIN = {x:CENTER.x, y:2*LENGTH};
-const SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
-
 
 const make_session_id = (key)=>`${Date.now()}__${key}`
 const extract_session_key = (session_id)=>session_id.split('__')[1]
@@ -1114,8 +1128,8 @@ var TEXT_HEIGHT = 15
 var REFERENCE_COLOR = WHITE
 
 var PHASER_CONFIG = {
-    width: WIDTH + BOTTOM_BORDER,
-    height: HEIGHT + BOTTOM_BORDER,
+    width: WIDTH + 2*FRAME,
+    height: HEIGHT + 2*FRAME,
     type: Phaser.AUTO,
     parent: 'Accuracy Training',
     pixelArt:true,
