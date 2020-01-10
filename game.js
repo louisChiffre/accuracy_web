@@ -1025,7 +1025,7 @@ LEVELS =
         make_scenes_fun: ()=> repeat('QuadSpace2',12),
         key: 'quad_wo_frame_and_corrx12',
         evaluate_loss_condition:  never,
-        description: '12 quadrilaterals exercises where edges cannot be moved once set'
+        description: '12 quads that cannot be edited'
 
     },
 
@@ -1906,6 +1906,23 @@ class Start extends Phaser.Scene {
     }
     update ()
     {
+        /*
+        // display layout
+        GRAPHICS.clear();
+        GRAPHICS.save();
+        GRAPHICS.translateCanvas(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
+        GRAPHICS.lineStyle(1, WHITE, 0.2);
+        GRAPHICS.strokeRectShape(new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH))
+        GRAPHICS.restore();
+
+        GRAPHICS.save();
+        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+        GRAPHICS.lineStyle(1, WHITE, 0.2);
+        GRAPHICS.strokeRectShape(new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH))
+        GRAPHICS.restore();
+        */
+
+
     }
 }
 // ending scene
@@ -2028,9 +2045,22 @@ class Menu extends Phaser.Scene {
 
     create(config)
     {
+        const w = Math.floor(WIDTH/3);
+        const h = Math.floor(HEIGHT*2/3);
+        const SELECT_ORIGIN = {x: FRAME, y:FRAME}
+        const MINIATURE_ORIGIN = {x:FRAME + w, y:FRAME}
+        const DESCRIPTION_ORIGIN = {x:MINIATURE_ORIGIN.x, y:MINIATURE_ORIGIN.y + LENGTH+DEFAULT_FONT_SIZE}
+        const LEADERBOARD_ORIGIN = {x:MINIATURE_ORIGIN.x, y:DESCRIPTION_ORIGIN.y + DEFAULT_FONT_SIZE*2}
+
         make_scene_setup(this);
         var scene = this;
-        var select_text = scene.add.text().setPosition(CENTER_TOP.x, CENTER_TOP.y).setText().setFontSize(DEFAULT_FONT_SIZE).setOrigin(0.5,0).setText('SELECT EXERCISE\n')
+        //pulsating select text
+
+        var select_text = scene.add.text()
+            .setPosition(SELECT_ORIGIN.x, SELECT_ORIGIN.y)
+            .setText()
+            .setFontSize(DEFAULT_FONT_SIZE)
+            .setOrigin(0,0).setText('SELECT EXERCISE\n')
         scene.tweens.add({
             targets: select_text,
             alpha: 0.2,
@@ -2042,11 +2072,15 @@ class Menu extends Phaser.Scene {
         var level_names = get_level_names()
         var LIST_HEIGHT = DEFAULT_FONT_SIZE*(level_names.length+5)
         var reference_frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH)
-        var description_text = scene.add.text(CENTER.x, LIST_HEIGHT + HEIGHT/2+DEFAULT_FONT_SIZE)
+        var description_text = scene.add.text()
+            .setPosition(DESCRIPTION_ORIGIN.x, DESCRIPTION_ORIGIN.y)
             .setFontSize(DEFAULT_FONT_SIZE)
             .setFontFamily(FONT_FAMILY)
-            .setAlign('center')
-            .setOrigin(0.5,1.0)
+            .setOrigin(0.0,0.0)
+        var leaderboard_text = scene.add.text()
+                .setPosition(LEADERBOARD_ORIGIN.x, LEADERBOARD_ORIGIN.y)
+                .setFontSize(DEFAULT_FONT_SIZE)
+                .setFontFamily(FONT_FAMILY)
 
 
         const start_level = (level)=>
@@ -2066,9 +2100,9 @@ class Menu extends Phaser.Scene {
 
         level_names.map(name=>LEVELS[name]).map((level,i) => {
             var text = scene.add.text()
-            .setPosition(CENTER_TOP.x, CENTER_TOP.y+(i+2)*DEFAULT_FONT_SIZE)
+            .setPosition(SELECT_ORIGIN.x, SELECT_ORIGIN.y+(i+2)*DEFAULT_FONT_SIZE)
             .setText(`${level.name}`)
-            .setOrigin(0.5,0)
+            .setOrigin(0,0)
             .setInteractive()
             .on('pointerdown', function(pointer, localX, localY, event){ start_level(level) })
 
@@ -2079,7 +2113,7 @@ class Menu extends Phaser.Scene {
                 const make_miniature= ()=>
                 {
                     GRAPHICS.clear()
-                    GRAPHICS.translateCanvas(CENTER.x-(LENGTH*0.5), LIST_HEIGHT);
+                    GRAPHICS.translateCanvas(MINIATURE_ORIGIN.x, MINIATURE_ORIGIN.y);
                     GRAPHICS.scaleCanvas(1,1);
                     const name = level.make_scenes_fun()[0];
                     const config = get_config_by_name(name);
@@ -2094,7 +2128,7 @@ class Menu extends Phaser.Scene {
                 .on('pointerover',(pointer, localX, localY, event)=> {
                     make_sample(level);text.setColor(RED_TEXT)
                     var leaderboard = LEADERBOARDS[level.key]||[];
-                    scene.center_bottom_text.setAlign('left').setText(
+                    leaderboard_text.setText(
                         'LEADERBOARD\n' +
                         '-----------\n'  +
                         leaderboard.map((x,i)=>`${i+1}. ${(x.score*100).toFixed(2)} ${x.user}`).join('\n'))
@@ -2105,6 +2139,23 @@ class Menu extends Phaser.Scene {
 
     update ()
     {
+        //var w = Math.floor(WIDTH/3);
+        //var h = Math.floor(HEIGHT*2/3);
+        //var square = new Phaser.Geom.Rectangle(0, 0, w, h)
+        //var x = h/2;
+        //GRAPHICS.clear();
+        //GRAPHICS.save();
+        //GRAPHICS.translateCanvas(FRAME, FRAME);
+        //GRAPHICS.lineStyle(1, WHITE, 0.2);
+        //GRAPHICS.strokeRectShape(square)
+        //GRAPHICS.restore();
+
+        //GRAPHICS.save();
+        //GRAPHICS.translateCanvas(FRAME + w, FRAME)
+        //GRAPHICS.lineStyle(1, WHITE, 0.2);
+        //GRAPHICS.strokeRectShape(new Phaser.Geom.Rectangle(0, 0, 2*w, h))
+        //GRAPHICS.restore();
+
     }
 }
 
