@@ -17,7 +17,7 @@ const BORDER = 10;
 const WIDTH = 800;
 const HEIGHT = 800;
 const BOTTOM_BORDER = 100;
-const FRAME = 25 
+const FRAME = 50 
 
 // roughly the size of a panel
 const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)/2))
@@ -881,7 +881,7 @@ class InputScene extends Phaser.Scene {
         this.data_.config = config;
         this.center_bottom_text.setText(get_display_name())
         this.stats_text.setText(make_status_string());
-        this.help_text.setText(make_help_text(config.control_help_instructions||[], 'validate'))
+        this.help_text.setFontSize(DEFAULT_FONT_SIZE-2).setText(make_help_text(config.control_help_instructions||[], 'validate'))
 
 
         this.frame = new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH);
