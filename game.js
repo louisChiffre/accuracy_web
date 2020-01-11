@@ -25,16 +25,17 @@ const LENGTH = Math.floor((Math.min(WIDTH, HEIGHT)/2))
 //centers 
 const CENTER = {x:LENGTH+FRAME, y:LENGTH+FRAME}
 const CENTER_TOP = {x:CENTER.x, y:BORDER}
-const CENTER_BOTTOM = {x:CENTER.x, y:HEIGHT+(BOTTOM_BORDER*0.8)}
+const CENTER_BOTTOM = {x:CENTER.x, y:HEIGHT+2*FRAME}
 
 //reference of player and reference frame
 const REFERENCE_ORIGIN ={x:FRAME,y:FRAME}
 const PLAYER_ORIGIN = {x:REFERENCE_ORIGIN.x+LENGTH, y:REFERENCE_ORIGIN.y+LENGTH};
 
+
 const STATS_ORIGIN = {x:REFERENCE_ORIGIN.x, y:PLAYER_ORIGIN.y+BORDER};
 const HELP_ORIGIN = {x:PLAYER_ORIGIN.x, y:REFERENCE_ORIGIN.y};
 const PLAYER_NAME_ORIGIN = {x:CENTER.x, y:2*LENGTH};
-const SCORE_ORIGIN =  {x:REFERENCE_ORIGIN.x, y:BORDER};
+const SCORE_ORIGIN = {x:0, y:0};
 
 
 // default timer
@@ -468,9 +469,9 @@ const make_timed_config = (config, max_time_s) =>
 {
     return {
         ...config,
-        {
+        ...{
             name: config.name + 'Timer',
-            eval_name: config.name + 'Timer',
+            eval_name: config.name + 'EvalTimer',
             max_time_s:max_time_s
         }
     }
@@ -478,10 +479,7 @@ const make_timed_config = (config, max_time_s) =>
 
 }
 
-
 //var quad_space_timer_config = make_timed_config(quad_space_config, 5)
-
-
 
 var quad_space_config_w_corr = {
     name: 'QuadSpaceWCorr2',
@@ -983,7 +981,11 @@ never =  function(stats)
                 has_lost: false
             }
 }
-var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 'TRAINING']
+var BASE_LEVEL_NAMES = [
+    'CIRCLE', 'RECTANGLE','PROPORTION', 'TRIANGLE', 'TRAINING',
+    'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 
+    'CIRCLE_TURBO', 'RECTANGLE_TURBO','PROPORTION_TURBO', 'TRIANGLE_TURBO', 
+]
 LEVELS =
 {
     DEV:
@@ -1004,33 +1006,21 @@ LEVELS =
         description: '15 exercises selected randomly',
 
     },
-    QUADRILATERAL:
-    {
-        name: 'Quadrilateral',
-        make_scenes_fun: ()=> repeat('QuadSpaceWCorr2',12),
-        key: 'quad_wo_frame_w_corrx12',
-        evaluate_loss_condition:  never,
-        description: '12 quadrilaterals exercises'
+
+    CIRCLE:{
+        name: 'Circle',
+        make_scenes_fun: ()=> repeat('Circle',12),
+        key: 'circlex12',
+        evaluate_loss_condition: stop_if_too_bad,
+        description: '12 circle exercises',
     },
 
-    QUAD_HARD:
-    {
-        name: 'Quadrilateral Hard',
-        make_scenes_fun: ()=> repeat('QuadSpace2',12),
-        key: 'quad_wo_frame_and_corrx12',
-        evaluate_loss_condition:  never,
-        description: '12 quads that cannot be edited'
-
-    },
-
-    QUADRILATERAL_TURBO:
-    {
-        name: 'Quadrilateral Turbo',
-        make_scenes_fun: ()=> repeat('QuadSpace2Timer',12),
-        key: 'quad_wo_frame_and_corr5x12',
-        evaluate_loss_condition:  never,
-        description: '12 quadrilaterals exercises with 5 second timer'
-
+    RECTANGLE:{
+        name: 'Rectangle',
+        make_scenes_fun: ()=> repeat('Square',12),
+        key: 'squarex12',
+        evaluate_loss_condition: stop_if_too_bad,
+        description: '12 rectangles exercises',
     },
 
 
@@ -1047,32 +1037,79 @@ LEVELS =
         make_scenes_fun: ()=> repeat('Triangle',12),
         key: 'trianglex12',
         evaluate_loss_condition: stop_if_too_bad,
+        description:'12 triangle exercises'
     },
 
-    CIRCLE:{
-        name: 'Circle',
-        make_scenes_fun: ()=> repeat('Circle',12),
-        key: 'circlex12',
-        evaluate_loss_condition: stop_if_too_bad,
-        description: '12 circle exercises',
+
+    QUADRILATERAL:
+    {
+        name: 'Quadrilateral',
+        make_scenes_fun: ()=> repeat('QuadSpaceWCorr2',12),
+        key: 'quad_wo_frame_w_corrx12',
+        evaluate_loss_condition:  never,
+        description: '12 quadrilaterals exercises'
     },
-    SQUARE:{
-        name: 'Rectangle',
-        make_scenes_fun: ()=> repeat('Square',12),
-        key: 'squarex12',
-        evaluate_loss_condition: stop_if_too_bad,
-        description: '12 rectangles exercises',
+
+    QUADRILATERAL_HARD:
+    {
+        name: 'Quadrilateral Hard',
+        make_scenes_fun: ()=> repeat('QuadSpace2',12),
+        key: 'quad_wo_frame_and_corrx12',
+        evaluate_loss_condition:  never,
+        description: '12 quads that cannot be edited'
+
+    },
+
+
+    QUADRILATERAL_TURBO:
+    {
+        name: 'Quadrilateral Turbo',
+        make_scenes_fun: ()=> repeat('QuadSpace2Timer',12),
+        key: 'quad_wo_frame_and_corr5x12',
+        evaluate_loss_condition:  never,
+        description: '12 quadrilaterals exercises with 5 second timer'
+
     },
 
 }
+function make_turbo_level(level, max_time_s)
+{
+    return { ...level,
+        ...{
+        name: level.name + ' Turbo',
+        key:  level.key + `_turbo_${max_time_s}`,
+        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>x+'Timer'),
+        description: level.description + ` with ${max_time_s} seconds timer`
+    }
+    }
 
 
+}
+
+const QUAD_MAX_TIME_S =5
+const CIRCLE_MAX_TIME_S = 2
+const RECTANGLE_MAX_TIME_S =2
+const TRIANGLE_MAX_TIME_S = 2
+const PROPORTION_MAX_TIME_S =2
+
+LEVELS.CIRCLE_TURBO = make_turbo_level( LEVELS.CIRCLE, CIRCLE_MAX_TIME_S)
+LEVELS.RECTANGLE_TURBO = make_turbo_level( LEVELS.RECTANGLE, RECTANGLE_MAX_TIME_S)
+LEVELS.PROPORTION_TURBO = make_turbo_level( LEVELS.PROPORTION, PROPORTION_MAX_TIME_S)
+LEVELS.TRIANGLE_TURBO = make_turbo_level( LEVELS.TRIANGLE, TRIANGLE_MAX_TIME_S)
 
 
 const CONFIGS = [
-    triangle_config, circle_config, square_config proportion_config, 
-    quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr, 
-    make_timed_config(quad_space_config, 5)
+    circle_config, 
+    square_config,
+    proportion_config, 
+    triangle_config, 
+    quad_space_config, quad_space_config_w_corr, 
+    make_timed_config(quad_space_config, QUAD_MAX_TIME_S),
+    make_timed_config(circle_config, CIRCLE_MAX_TIME_S), 
+    make_timed_config(square_config, RECTANGLE_MAX_TIME_S),
+    make_timed_config(triangle_config, TRIANGLE_MAX_TIME_S), 
+    make_timed_config(proportion_config,PROPORTION_MAX_TIME_S), 
+
     ]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
@@ -1683,16 +1720,10 @@ function make_scene_setup(scene)
         STATS_ORIGIN.y).setFontSize(DEFAULT_FONT_SIZE).setFontFamily(FONT_FAMILY)
 
     scene.score_text = scene.add.text(
-        SCORE_ORIGIN.x, SCORE_ORIGIN.y, '')
+        SCORE_ORIGIN.x, SCORE_ORIGIN.y)
         .setFontSize(64)
         .setFontStyle('bold')
         .setFontFamily(FONT_FAMILY);
-
-    //scene.countdown_text = scene.add.text(
-    //    STATS_ORIGIN.x+100, STATS_ORIGIN.y, '')
-    //    .setFontSize(64)
-    //    .setFontStyle('bold')
-    //    .setFontFamily(FONT_FAMILY);
 
 
     scene.list_text = scene.add.text(
