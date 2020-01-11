@@ -398,37 +398,6 @@ const polygon_instructions_without_editing =  [
 const polygon_instructions = polygon_instructions_without_editing.concat(['Once closed, single point can be dragged and dropped by holding left button'])
 
 
-
-
-var blob_config = {
-    name: 'Blob',
-    eval_name: 'EvalBlob',
-    control_help_instructions:polygon_instructions ,
-    make_data: function(cache)
-    {
-        var n_rotation = Phaser.Math.Between(0,3);
-        var reference = new Phaser.Geom.Polygon(rotate_points(make_random_polygon(LENGTH),n_rotation));
-        var player = {
-            polygon:new Phaser.Geom.Polygon(rotate_points([0,0,100,0],n_rotation)),
-            square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
-            pointer: 1,
-            done: false};
-
-        return {
-            'reference' :reference,
-            player :player
-        };
-    },
-    draw_reference: draw_polygon_reference ,
-    draw_player: draw_polygon_player ,
-    draw_evaluation: draw_polygon_evaluation,
-    process_cursors_input: process_cursors_input ,
-    pointermove: polygon_pointermove,
-    pointerdown: polygon_pointerdown,
-    drag: polygon_drag,
-    inputs: {},
-}
-
 var quad_config = {
     name: 'Quad',
     eval_name: 'EvalQuad',
@@ -456,12 +425,20 @@ var quad_config = {
             player :player
         };
     },
+    control_help_instructions:polygon_instructions ,
+    draw_reference: draw_polygon_reference ,
+    draw_player: draw_polygon_player ,
+    draw_evaluation: draw_polygon_evaluation,
+    process_cursors_input: process_cursors_input ,
+    pointermove: polygon_pointermove,
+    pointerdown: polygon_pointerdown,
+    drag: polygon_drag,
+    inputs: {},
 }
 
-var quad_config = {...blob_config, ...quad_config}
 
 // we disable the ability to drag and drop points to create a new exercise
-var quad_config_hard = {...blob_config, ...quad_config}
+var quad_config_hard = { ...quad_config}
 delete quad_config_hard.drag
 quad_config_hard.name = 'QuadHard'
 quad_config_hard.eval_name = 'EvalQuadHard'
@@ -475,15 +452,34 @@ var quad_space_config = {
     draw_player_evaluation: draw_polygon_player_centered,
     draw_player: draw_polygon_player_wo_frame 
 }
-quad_space_config = {...quad_config_hard, ...quad_space_config}
 
-var quad_space_timer_config = { ...quad_space_config, ...
+quad_space_config = {
+    ...quad_config_hard, 
+    ...{
+        name: 'QuadSpace2',
+        eval_name: 'EvalQuadSpace2',
+        draw_evaluation: draw_polygon_evaluation_centered,
+        draw_player_evaluation: draw_polygon_player_centered,
+        draw_player: draw_polygon_player_wo_frame 
+    }
+}
+
+const make_timed_config = (config, max_time_s) =>
 {
-    name: 'QuadSpace2Timer',
-    eval_name: 'EvalQuadSpace2Timer',
-    max_time_s:5 
+    return {
+        ...config,
+        {
+            name: config.name + 'Timer',
+            eval_name: config.name + 'Timer',
+            max_time_s:max_time_s
+        }
+    }
+
+
 }
-}
+
+
+//var quad_space_timer_config = make_timed_config(quad_space_config, 5)
 
 
 
@@ -578,8 +574,6 @@ var circle_config = {
     },
 };
 
-
-var circle_config_with_timer = {...circle_config, ...{name:'CircleTimer',eval_name:'EvalCircleTimer', max_time_s:5}}
 
 
 var triangle_config = {
@@ -989,7 +983,7 @@ never =  function(stats)
                 has_lost: false
             }
 }
-var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUAD_WO_FRAME_W_COR', 'QUAD_WO_FRAME', 'QUAD_HARD_TIMED', 'TRAINING']
+var BASE_LEVEL_NAMES = ['CIRCLE', 'SQUARE','PROPORTION', 'TRIANGLE', 'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 'TRAINING']
 LEVELS =
 {
     DEV:
@@ -1010,7 +1004,7 @@ LEVELS =
         description: '15 exercises selected randomly',
 
     },
-    QUAD_WO_FRAME_W_COR:
+    QUADRILATERAL:
     {
         name: 'Quadrilateral',
         make_scenes_fun: ()=> repeat('QuadSpaceWCorr2',12),
@@ -1019,7 +1013,7 @@ LEVELS =
         description: '12 quadrilaterals exercises'
     },
 
-    QUAD_WO_FRAME:
+    QUAD_HARD:
     {
         name: 'Quadrilateral Hard',
         make_scenes_fun: ()=> repeat('QuadSpace2',12),
@@ -1029,7 +1023,7 @@ LEVELS =
 
     },
 
-    QUAD_HARD_TIMED:
+    QUADRILATERAL_TURBO:
     {
         name: 'Quadrilateral Turbo',
         make_scenes_fun: ()=> repeat('QuadSpace2Timer',12),
@@ -1039,20 +1033,6 @@ LEVELS =
 
     },
 
-    QUAD:{
-        name: 'Quad x 12',
-        make_scenes_fun: ()=> repeat('Quad',12),
-        key: 'quadx12',
-        evaluate_loss_condition:  never,
-        //evaluate_loss_condition: stop_if_too_bad
-    },
-    QUAD_HARD:{
-        name: 'Quad Hard x 12',
-        make_scenes_fun: ()=> repeat('QuadHard',12),
-        key: 'quad_hardx12',
-        evaluate_loss_condition:  never,
-        //evaluate_loss_condition: stop_if_too_bad
-    },
 
     PROPORTION:{
         name: 'Proportion',
@@ -1066,13 +1046,6 @@ LEVELS =
         name: 'Triangle',
         make_scenes_fun: ()=> repeat('Triangle',12),
         key: 'trianglex12',
-        evaluate_loss_condition: stop_if_too_bad,
-    },
-
-    POLYGON:{
-        name: 'Polygon x 6',
-        make_scenes_fun: ()=> repeat('Blob',6),
-        key: 'polygonx6',
         evaluate_loss_condition: stop_if_too_bad,
     },
 
@@ -1097,8 +1070,10 @@ LEVELS =
 
 
 const CONFIGS = [
-    triangle_config, blob_config, circle_config, square_config, circle_config_with_timer, 
-    proportion_config, free_config, quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr, quad_space_timer_config]
+    triangle_config, circle_config, square_config proportion_config, 
+    quad_config, quad_config_hard, quad_space_config, quad_space_config_w_corr, 
+    make_timed_config(quad_space_config, 5)
+    ]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
 
 var FIREBASE_APP = firebase.initializeApp(firebase_config);
