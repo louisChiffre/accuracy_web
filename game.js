@@ -1949,14 +1949,14 @@ class End extends Phaser.Scene {
         var scene = this;
         
         var result = rank_sessions(all_stats, session_id);
-        const MAX_SCORE=30;
+        const MAX_SCORE=50;
         
         // list personal scores
         const make_personal_leaderboard = ()=>
         {
             scene.add.text()
             .setFontSize(DEFAULT_FONT_SIZE)
-            .setText(`  PERSONAL TOP ${MAX_SCORE}`)
+            .setText(`  PERSONAL TOP ${Math.min(result.sessions.length, MAX_SCORE)}`)
             _.take(result.sessions,MAX_SCORE).map((x,i)=>{
                 scene.add.text()
                 .setFontSize(DEFAULT_FONT_SIZE)
