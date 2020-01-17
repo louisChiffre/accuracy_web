@@ -827,6 +827,19 @@ class EvaluateScene extends Phaser.Scene {
         {
             var score_info = calc_score(textureManager, image);
             var score = score_info.score;
+            var config = scene.data_.config
+            if(config.name=='Square')
+            {
+                var calc_area = (z)=> z.height*z.width;
+                var player =calc_area(scene.data_.player)
+                var reference =calc_area(scene.data_.reference)
+                var intersection = Math.min(reference,player)
+                var union = Math.max(reference, player)
+                var score = intersection/union
+                var score_info_ = { union:union, intersection:intersection, player:player, reference:reference, score:score}
+                console.assert(score_info_.score=score_info.score)
+
+            }
             var stat  = {
                 time: Date.now(),
                 name:scene.data_.config.name,
