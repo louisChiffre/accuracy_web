@@ -70,10 +70,15 @@ function make_random_triangle(n_rotation)
     return new Phaser.Geom.Triangle(p[0], p[1], p[2], p[3], p[4], p[5]);
 }
 
+function make_circle(LENGTH, radius)
+{
+    return new Phaser.Geom.Circle(LENGTH*0.5, LENGTH*0.5, radius);
+}
+
 
 function make_random_circle(LENGTH)
 {
-    return new Phaser.Geom.Circle(LENGTH*0.5, LENGTH*0.5, Phaser.Math.Between(50, 0.4*LENGTH));
+    return make_circle(LENGTH, Phaser.Math.Between(50, 0.4*LENGTH))
 }
 
 function make_random_base(H)
@@ -520,6 +525,13 @@ var free_config = {
     filepack: 'assets/pack_free',
 }
 
+function calc_distance_to_center(pointer)
+{
+    var position = get_player_relative_position(pointer);
+    return Phaser.Math.Distance.Between(position.x, position.y, LENGTH/2.0, LENGTH/2.0); 
+
+}
+
 var circle_config = {
     inputs: {},
     name: 'Circle',
@@ -529,8 +541,10 @@ var circle_config = {
         return make_random_circle(LENGTH);
     },
     make_data: function(){
+        var pointer = GAME.input.mousePointer;
+        var distance = calc_distance_to_center(pointer);
         return {
-            player: make_random_circle(LENGTH),
+            player: make_circle(LENGTH, distance),
             reference: make_random_circle(LENGTH),
         }
     },
@@ -566,9 +580,7 @@ var circle_config = {
     },
     pointermove: function(pointer, data)
     {
-        var position =get_player_relative_position(pointer);
-        var distance = Phaser.Math.Distance.Between(position.x, position.y, LENGTH/2.0, LENGTH/2.0); 
-        data.player.radius = distance;
+        data.player.radius = calc_distance_to_center(pointer);
     },
 };
 
@@ -746,10 +758,9 @@ var square_config = {
 
     pointermove: function(pointer, data)
     {
-        var position =get_player_relative_position(pointer);
+        var position = get_player_relative_position(pointer);
         data.player.height = position.y
         data.player.width = position.x
-
     },
 
 
