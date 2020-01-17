@@ -53,13 +53,19 @@ function make_help_text(control_help_instructions, space_bar_action)
     return ['ORIENTATION: Reproduce white figure below'].concat(lines).join('\n')
 }
 
+function make_square(width, height)
+{
+    return new Phaser.Geom.Rectangle(0, 0, width, height);
+
+}
+
 function make_random_square(min_height, max_height, min_width, max_width)
 {
     console.assert(min_height <= max_height)
     console.assert(min_width <= max_width)
     var height = Phaser.Math.Between(min_height, max_height);  
     var width =  Phaser.Math.Between(min_width, max_height);
-    return new Phaser.Geom.Rectangle(0, 0, width, height);
+    return make_square(width, height);
 }
 
 function make_random_triangle(n_rotation)
@@ -541,8 +547,7 @@ var circle_config = {
         return make_random_circle(LENGTH);
     },
     make_data: function(){
-        var pointer = GAME.input.mousePointer;
-        var distance = calc_distance_to_center(pointer);
+        var distance = calc_distance_to_center(get_pointer());
         return {
             player: make_circle(LENGTH, distance),
             reference: make_random_circle(LENGTH),
@@ -644,6 +649,13 @@ var triangle_config = {
 
 
 };
+
+function get_pointer()
+{
+    return GAME.input.mousePointer;
+}
+
+
 var proportion_config = {
     inputs: {},
     name: 'Proportion',
@@ -653,7 +665,7 @@ var proportion_config = {
     {
         var min_width = 50; 
         var scale = Phaser.Math.Between(2.0, 3.0);  
-        var ref = make_random_square(min_width, LENGTH/scale, min_width, LENGTH/scale);
+        var ref =  make_random_square(min_width, LENGTH/scale, min_width, LENGTH/scale);
         var player = new Phaser.Geom.Rectangle(0, 0, ref.width*scale, 100);
         return {
             player : player, 
@@ -718,9 +730,10 @@ var square_config = {
     control_help_instructions: ['Use cursor to control edge of rectangle'],
     make_data: function()
     {
+        var position =get_player_relative_position(get_pointer());
         return {
             reference : make_random_square(50, LENGTH, 50, LENGTH),
-            player : make_random_square(50, LENGTH, 50, LENGTH),
+            player : make_square(position.x, position.y)
         };
     },
     draw_reference: function(data)
