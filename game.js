@@ -810,7 +810,7 @@ class EvaluateScene extends Phaser.Scene {
 
         var textureManager = this.textures;
         var scene = this;
-        this.game.renderer.snapshotArea(0, 0, LENGTH, LENGTH, function (image)
+        this.game.renderer.snapshotArea(0, 0, LENGTH + FRAME, LENGTH+BOTTOM_BORDER+FRAME, function (image)
         {
             var score_info = calc_score(textureManager, image);
             var score = score_info.score;
