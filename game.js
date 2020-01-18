@@ -838,23 +838,18 @@ class EvaluateScene extends Phaser.Scene {
 
         var v = get_snapshot_area()
 
+        // we add a variable to know if the snapshot has been done
+        // we want to take a snapshot with only the evaluation
+        scene.data_.is_evaluated = false
+
         this.game.renderer.snapshotArea(v.x, v.y, v.width, v.height, function (image)
         {
+            scene.data_.is_evaluated = true
+
+            //to display the snapshot
+            //document.body.appendChild(image);
             var score_info = calc_score(textureManager, image);
             var score = score_info.score;
-            var config = scene.data_.config
-            if(config.name=='Square')
-            {
-                var calc_area = (z)=> z.height*z.width;
-                var player =calc_area(scene.data_.player)
-                var reference =calc_area(scene.data_.reference)
-                var intersection = Math.min(reference,player)
-                var union = Math.max(reference, player)
-                var score = intersection/union
-                var score_info_ = { union:union, intersection:intersection, player:player, reference:reference, score:score}
-                console.assert(score_info_.score=score_info.score)
-
-            }
             var stat  = {
                 time: Date.now(),
                 name:scene.data_.config.name,
@@ -882,20 +877,27 @@ class EvaluateScene extends Phaser.Scene {
         this.data_.config.draw_evaluation(this.data_);
         GRAPHICS.restore();
 
-        // we copy the reference on the player canvas
-        GRAPHICS.save();
-        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        // if we have specified a draw reference evaluation we use it otherwise we use the standard function
-        (this.data_.config.draw_reference_evaluation||this.data_.config.draw_reference)(this.data_)
+        //once the evaluation snapshot is taken, we can draw the rest
+        if (this.data_.is_evaluated)
+        {
+            // we copy the reference on the player canvas
+            GRAPHICS.save();
+            GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+            // if we have specified a draw reference evaluation we use it otherwise we use the standard function
+            (this.data_.config.draw_reference_evaluation||this.data_.config.draw_reference)(this.data_)
 
-        GRAPHICS.fillStyle(0x000000, 0.7);
-        GRAPHICS.fillRectShape(this.blinder);
-        GRAPHICS.restore();
+            GRAPHICS.fillStyle(0x000000, 0.7);
+            GRAPHICS.fillRectShape(this.blinder);
+            GRAPHICS.restore();
 
-        GRAPHICS.save();
-        GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
-        (this.data_.config.draw_player_evaluation||this.data_.config.draw_player)(this.data_)
-        GRAPHICS.restore();
+            GRAPHICS.save();
+            GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
+            (this.data_.config.draw_player_evaluation||this.data_.config.draw_player)(this.data_)
+            GRAPHICS.restore();
+        }
+
+
+
 
     }
 
@@ -1702,6 +1704,8 @@ function calc_score(textureManager, image)
     var score = intersection/union;
     textureManager.remove('snap');
     return {
+        only_ref:only_ref,
+        only_player: only_player,
         intersection:intersection, 
         union:union,
         score:score,
