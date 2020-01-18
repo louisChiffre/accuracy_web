@@ -779,6 +779,18 @@ var square_config = {
 
 };
 
+function get_snapshot_area()
+{
+    return {
+        x: 0,
+        y: 0,
+        width: LENGTH + FRAME,
+        height: LENGTH + BOTTOM_BORDER + FRAME
+    }
+
+
+}
+
 
 class EvaluateScene extends Phaser.Scene {
     constructor (config)
@@ -803,7 +815,7 @@ class EvaluateScene extends Phaser.Scene {
         make_scene_setup(this);
         this.data_=data;
         this.center_bottom_text.setText(get_display_name())
-        this.stats_text.setText(make_status_string());
+        //this.stats_text.setText(make_status_string());
 
         var explanations = [
             'Brown is the intersection between your drawing',
@@ -823,7 +835,10 @@ class EvaluateScene extends Phaser.Scene {
 
         var textureManager = this.textures;
         var scene = this;
-        this.game.renderer.snapshotArea(0, 0, LENGTH + FRAME, LENGTH+BOTTOM_BORDER+FRAME, function (image)
+
+        var v = get_snapshot_area()
+
+        this.game.renderer.snapshotArea(v.x, v.y, v.width, v.height, function (image)
         {
             var score_info = calc_score(textureManager, image);
             var score = score_info.score;
@@ -1665,27 +1680,21 @@ function calc_score(textureManager, image)
     var i,j,k;
     var key,r,g;
     var M = {};
-    var intersection_key = [76,53];
-    var only_ref_key = [0,76];
-    var only_player_key = [76,0];
+    var intersection_key = [76,53, 0, 255];
+    var only_ref_key = [0,76, 0, 255];
+    var only_player_key = [76,0, 0, 255];
 
-    for (i = 0; i < LENGTH; i++) {
-        for (j = 0; j < LENGTH; j++) {
-            k =(i + j*LENGTH)*4
-            r = data[k];
-            g = data[k+1];
-            key = [r,g];
-            if (key in M)
-            {
-                M[key] = M[key]+1;
-            }
-            else
-            {
-                M[key] = 1;
-            }
-            //k = scene.scene.textures.getPixel(i,j, 'snap');
-        }
+    var size = (image.width*image.height);
+    for (i = 0; i < size*4; i=i+4) {
+            r = data[i];
+            g = data[i+1];
+            b = data[i+2];
+            a = data[i+3];
+            key = [r,g,b,a];
+            M[key] = (M[key]||0)+1;
+            
     }
+    console.log(M)
     var only_ref = M[only_ref_key]||0;
     var only_player = M[only_player_key]||0;
     var intersection = M[intersection_key]||0;
