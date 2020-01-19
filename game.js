@@ -1104,7 +1104,7 @@ LEVELS =
     {
         name: 'Training 100',
         key: 'training_100',
-        make_scenes_fun: ()=>create_random_scenes_sequence(20 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpace2']),
+        make_scenes_fun: ()=>create_random_scenes_sequence(20 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpaceWCorr2']),
         evaluate_loss_condition:  never,
         description: '100 random exercises',
 
