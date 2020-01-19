@@ -280,10 +280,31 @@ function align_player_points(player_points, reference_points)
     return player_points.map((p)=> new Phaser.Geom.Point(p.x + dx, p.y+dy));
 }
 
-function calculate_centroid(points)
+function calculate_triangles(points)
 {
     var p = points.map((z)=>[z.x,z.y]);
-    var triangles = _.chunk(Delaunay.triangulate(p).map((k)=>p[k]),3).map((z)=>new Phaser.Geom.Triangle(...z.flat()))
+    return _.chunk(Delaunay.triangulate(p).map((k)=>p[k]),3).map((z)=>new Phaser.Geom.Triangle(...z.flat()))
+
+}
+
+function calc_triangle_area(tr)
+{
+    return Math.abs(
+        tr.x1*(tr.y2 - tr.y3) + 
+        tr.x2*(tr.y3 - tr.y1) + 
+        tr.x3*(tr.y1 - tr.y2))/2
+
+}
+function calc_polygon_area(points)
+{
+    return calculate_triangles(points).map(calc_triangle_area).reduce((a,b)=>a+b,0)
+
+
+}
+
+function calculate_centroid(points)
+{
+    var triangles = calculate_triangles(points)
     var centroids = triangles.map((x)=>Phaser.Geom.Triangle.Centroid(x));
     var areas = triangles.map(Phaser.Geom.Triangle.Area); 
     var area = areas.reduce((a,b)=>a+b,0)
@@ -409,23 +430,38 @@ const polygon_instructions_without_editing =  [
 
 const polygon_instructions = polygon_instructions_without_editing.concat(['Once closed, single point can be dragged and dropped by holding left button'])
 
+function make_random_quad()
+{
+    const f = Phaser.Math.Between
+    var L = LENGTH;
+    var L2 = LENGTH/2;
+    var points = [
+        f(0,L2), f(0,L2),
+        f(L2,L), f(0,L2),
+        f(L2,L), f(L2,L),
+        f(0,L2), f(L2,L),
+    ];
+    points =points.concat(points.slice(0,2));
+    return new Phaser.Geom.Polygon(points);
+
+}
 
 var quad_config = {
     name: 'Quad',
     eval_name: 'EvalQuad',
     make_data: function(cache)
     {
-        const f = Phaser.Math.Between
-        var L = LENGTH;
-        var L2 = LENGTH/2;
-        var points = [
-            f(0,L2), f(0,L2),
-            f(L2,L), f(0,L2),
-            f(L2,L), f(L2,L),
-            f(0,L2), f(L2,L),
-        ];
-        points =points.concat(points.slice(0,2));
-        var reference = new Phaser.Geom.Polygon(points);
+        var area = 0;
+        // we want to avoid quad that are too small
+        var minimum_area = LENGTH*LENGTH*0.10
+        var reference
+        while (area < minimum_area)
+        {
+            reference = make_random_quad()
+            area = calc_polygon_area(reference.points)
+            //console.log(area, ' vs minimum of', minimum_area)
+        }
+
         var player = {
             polygon:new Phaser.Geom.Polygon([]),
             square: new Phaser.Geom.Rectangle(0, 0, LENGTH, LENGTH),
