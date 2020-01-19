@@ -590,7 +590,6 @@ var circle_config = {
 };
 
 
-
 var triangle_config = {
     inputs: {},
     name: 'Triangle',
@@ -599,9 +598,13 @@ var triangle_config = {
     make_data: function(cache)
     {
         var n_rotation = Phaser.Math.Between(0,3);
+        var position =get_player_relative_position(get_pointer());
+        var player = make_random_triangle(n_rotation)
+        player.y3 = position.y
+        player.x3 = position.x
         return {
             reference: make_random_triangle(n_rotation),
-            player: make_random_triangle(n_rotation)
+            player: player
         }
 
 
