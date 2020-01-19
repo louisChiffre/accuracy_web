@@ -1075,7 +1075,7 @@ never =  function(stats)
             }
 }
 var BASE_LEVEL_NAMES = [
-    'CIRCLE', 'RECTANGLE','PROPORTION', 'TRIANGLE', 'TRAINING',
+    'CIRCLE', 'RECTANGLE','PROPORTION', 'TRIANGLE', 'TRAINING', 'TRAINING_100',
     'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 
     'CIRCLE_TURBO', 'RECTANGLE_TURBO','PROPORTION_TURBO', 'TRIANGLE_TURBO', 
 ]
@@ -1097,6 +1097,16 @@ LEVELS =
         make_scenes_fun: ()=>create_random_scenes_sequence(3 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpaceWCorr2']),
         evaluate_loss_condition:  never,
         description: '15 exercises selected randomly',
+
+    },
+
+    TRAINING_100:
+    {
+        name: 'Training 100',
+        key: 'training_100',
+        make_scenes_fun: ()=>create_random_scenes_sequence(20 ,['Proportion','Triangle', 'Square', 'Circle',  'QuadSpace2']),
+        evaluate_loss_condition:  never,
+        description: '100 random exercises',
 
     },
 
