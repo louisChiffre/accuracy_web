@@ -2091,7 +2091,7 @@ class End extends Phaser.Scene {
         //list scores of the session
         var session_stat = result.sessions[result.rank]
         var list_strings = current_stats.map(x=> `${x.name.padEnd(10)} ${(100*x.score).toFixed(2)}`)
-        var MAX_LINES = 15 // we cut the output if we have more lines than this
+        var MAX_LINES = 25 // we cut the output if we have more lines than this
         if (list_strings.length>MAX_LINES)
         {
             list_strings = list_strings.slice(0, MAX_LINES)
