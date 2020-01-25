@@ -1107,7 +1107,7 @@ var BASE_LEVEL_NAMES = [
     'CIRCLE', 'RECTANGLE','PROPORTION', 'TRIANGLE', 'TRAINING', 'TRAINING_100',
     'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 
     'CIRCLE_TURBO', 'RECTANGLE_TURBO','PROPORTION_TURBO', 'TRIANGLE_TURBO', 
-    'CIRCLE_GHOST'
+    'CIRCLE_GHOST', 'QUADRILATERAL_GHOST'
 ]
 LEVELS =
 {
@@ -1237,7 +1237,7 @@ function make_ghost_level(level, visible_time_s)
         name: level.name + ' ' + capitalize(name),
         key:  level.key + `_${name}_${visible_time_s}`,
         make_scenes_fun: ()=>level.make_scenes_fun().map(x=>`${x}${prefix}`),
-        description: level.description + ` where reference disappear after ${visible_time_s}s`
+        description: level.description + `. Ref hidden after ${visible_time_s}s`
     }
     }
 
@@ -1249,7 +1249,9 @@ const CIRCLE_MAX_TIME_S = 2
 const RECTANGLE_MAX_TIME_S =2
 const TRIANGLE_MAX_TIME_S = 2
 const PROPORTION_MAX_TIME_S =2
+
 const CIRCLE_VISIBLE_TIME_S =0.5
+const QUAD_VISIBLE_TIME_S =0.5
 
 LEVELS.CIRCLE_TURBO = make_turbo_level( LEVELS.CIRCLE, CIRCLE_MAX_TIME_S)
 LEVELS.RECTANGLE_TURBO = make_turbo_level( LEVELS.RECTANGLE, RECTANGLE_MAX_TIME_S)
@@ -1257,6 +1259,7 @@ LEVELS.PROPORTION_TURBO = make_turbo_level( LEVELS.PROPORTION, PROPORTION_MAX_TI
 LEVELS.TRIANGLE_TURBO = make_turbo_level( LEVELS.TRIANGLE, TRIANGLE_MAX_TIME_S)
 
 LEVELS.CIRCLE_GHOST = make_ghost_level( LEVELS.CIRCLE, CIRCLE_VISIBLE_TIME_S)
+LEVELS.QUADRILATERAL_GHOST = make_ghost_level( LEVELS.QUADRILATERAL, QUAD_VISIBLE_TIME_S)
 
 
 const CONFIGS = [
@@ -1271,6 +1274,7 @@ const CONFIGS = [
     make_timed_config(triangle_config, TRIANGLE_MAX_TIME_S), 
     make_timed_config(proportion_config,PROPORTION_MAX_TIME_S), 
     make_ghost_config(circle_config, CIRCLE_VISIBLE_TIME_S), 
+    make_ghost_config(quad_space_config_w_corr, QUAD_VISIBLE_TIME_S),
 
     ]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
@@ -1402,7 +1406,12 @@ class SessionManager
     }
 }
 
-const get_config_by_name= (level_name)=> CONFIGS.find(({ name }) => name === level_name )
+function get_config_by_name(level_name)
+{
+    var config = CONFIGS.find(({ name }) => name === level_name );
+    console.log(level_name)
+    return config
+}
 
 const get_firestore_leaderboards=()=>FIREBASE_DB.collection('leaderboards')
 const get_firestore_leaderboard_ref=(key)=>get_firestore_leaderboards().doc(key)
