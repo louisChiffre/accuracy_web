@@ -39,7 +39,7 @@ const SCORE_ORIGIN = {x:0, y:0};
 
 
 // default timer
-const MAX_TIMER_S = 360000
+const FOREVER_S = 360000
 
 
 // double click variables
@@ -513,7 +513,6 @@ quad_space_config = {
 }
 
 const TIMER_PREFIX = 'Timer';
-
 const make_timed_config = (config, max_time_s) =>
 {
     var prefix = TIMER_PREFIX;
@@ -523,6 +522,22 @@ const make_timed_config = (config, max_time_s) =>
             name: `${config.name}${prefix}`,
             eval_name: config.name + `Eval${prefix}`,
             max_time_s:max_time_s
+        }
+    }
+
+
+}
+
+const GHOST_PREFIX = 'Ghost';
+const make_ghost_config = (config, visible_time_s) =>
+{
+    var prefix = GHOST_PREFIX;
+    return {
+        ...config,
+        ...{
+            name: `${config.name}${prefix}`,
+            eval_name: config.name + `Eval${prefix}`,
+            visible_time_s:visible_time_s
         }
     }
 
@@ -987,14 +1002,21 @@ class InputScene extends Phaser.Scene {
             }
         }, this);
 
-        var max_time_s = config.max_time_s||MAX_TIMER_S;
+        var max_time_s = config.max_time_s||FOREVER_S;
+        var visible_time_s = config.visible_time_s||FOREVER_S;
         console.log('we will stop after ',max_time_s);
         var scene = this;
         const start_eval_scene = ()=>scene.scene.start(scene.data_.config.eval_name, scene.data_)
         
+        // we go to eval if the timer as elapsed
         this.logging_timer = this.time.addEvent({
             delay: 1000 * max_time_s,                // ms
             callback: ()=>{console.log('TIMER');start_eval_scene()},
+            callbackScope: scene,
+        });
+        this.visible_timer = this.time.addEvent({
+            delay: 1000 * visible_time_s,                // ms
+            //callback: ()=>{console.log('NOW WE DISAPPEAR')},
             callbackScope: scene,
         });
 
@@ -1040,13 +1062,17 @@ class InputScene extends Phaser.Scene {
 
         GRAPHICS.save();
         GRAPHICS.translateCanvas(REFERENCE_ORIGIN.x, REFERENCE_ORIGIN.y);
-        this.data_.config.draw_reference(this.data_)
+        var is_visible = this.visible_timer.getOverallProgress()<1;
+        if(is_visible)
+        {
+            this.data_.config.draw_reference(this.data_)
+        }
         GRAPHICS.restore();
 
         GRAPHICS.save();
         GRAPHICS.translateCanvas(PLAYER_ORIGIN.x, PLAYER_ORIGIN.y);
         this.data_.config.draw_player(this.data_);
-        if (this.data_.config.max_time_s<MAX_TIMER_S)
+        if (this.data_.config.max_time_s<FOREVER_S)
         {
             var dt = this.data_.config.max_time_s - this.logging_timer.getElapsedSeconds();
             var txt =moment.utc(moment.duration(dt,'seconds').asMilliseconds()).format('s')
@@ -1081,6 +1107,7 @@ var BASE_LEVEL_NAMES = [
     'CIRCLE', 'RECTANGLE','PROPORTION', 'TRIANGLE', 'TRAINING', 'TRAINING_100',
     'QUADRILATERAL', 'QUADRILATERAL_HARD', 'QUADRILATERAL_TURBO', 
     'CIRCLE_TURBO', 'RECTANGLE_TURBO','PROPORTION_TURBO', 'TRIANGLE_TURBO', 
+    'CIRCLE_GHOST'
 ]
 LEVELS =
 {
@@ -1193,8 +1220,24 @@ function make_turbo_level(level, max_time_s)
         ...{
         name: level.name + ' ' + capitalize(name),
         key:  level.key + `_${name}_${max_time_s}`,
-        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>`${x}${TIMER_PREFIX}`),
+        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>`${x}${prefix}`),
         description: level.description + ` with ${max_time_s} seconds timer`
+    }
+    }
+
+
+}
+
+function make_ghost_level(level, visible_time_s)
+{
+    var prefix=GHOST_PREFIX;
+    var name = 'ghost'
+    return { ...level,
+        ...{
+        name: level.name + ' ' + capitalize(name),
+        key:  level.key + `_${name}_${visible_time_s}`,
+        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>`${x}${prefix}`),
+        description: level.description + ` where reference disappear after ${visible_time_s}s`
     }
     }
 
@@ -1206,11 +1249,14 @@ const CIRCLE_MAX_TIME_S = 2
 const RECTANGLE_MAX_TIME_S =2
 const TRIANGLE_MAX_TIME_S = 2
 const PROPORTION_MAX_TIME_S =2
+const CIRCLE_VISIBLE_TIME_S =0.5
 
 LEVELS.CIRCLE_TURBO = make_turbo_level( LEVELS.CIRCLE, CIRCLE_MAX_TIME_S)
 LEVELS.RECTANGLE_TURBO = make_turbo_level( LEVELS.RECTANGLE, RECTANGLE_MAX_TIME_S)
 LEVELS.PROPORTION_TURBO = make_turbo_level( LEVELS.PROPORTION, PROPORTION_MAX_TIME_S)
 LEVELS.TRIANGLE_TURBO = make_turbo_level( LEVELS.TRIANGLE, TRIANGLE_MAX_TIME_S)
+
+LEVELS.CIRCLE_GHOST = make_ghost_level( LEVELS.CIRCLE, CIRCLE_VISIBLE_TIME_S)
 
 
 const CONFIGS = [
@@ -1224,6 +1270,7 @@ const CONFIGS = [
     make_timed_config(square_config, RECTANGLE_MAX_TIME_S),
     make_timed_config(triangle_config, TRIANGLE_MAX_TIME_S), 
     make_timed_config(proportion_config,PROPORTION_MAX_TIME_S), 
+    make_ghost_config(circle_config, CIRCLE_VISIBLE_TIME_S), 
 
     ]
 const GAME_NAMES  = CONFIGS.map(x=>x.name).concat(['All']);
