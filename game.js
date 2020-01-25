@@ -512,13 +512,16 @@ quad_space_config = {
     }
 }
 
+const TIMER_PREFIX = 'Timer';
+
 const make_timed_config = (config, max_time_s) =>
 {
+    var prefix = TIMER_PREFIX;
     return {
         ...config,
         ...{
-            name: config.name + 'Timer',
-            eval_name: config.name + 'EvalTimer',
+            name: `${config.name}${prefix}`,
+            eval_name: config.name + `Eval${prefix}`,
             max_time_s:max_time_s
         }
     }
@@ -1175,13 +1178,22 @@ LEVELS =
     },
 
 }
+
+const capitalize = (s) => {
+  if (typeof s !== 'string') return ''
+  return s.charAt(0).toUpperCase() + s.slice(1)
+}
+//
+// create a turbo version
 function make_turbo_level(level, max_time_s)
 {
+    var prefix=TIMER_PREFIX;
+    var name = 'turbo'
     return { ...level,
         ...{
-        name: level.name + ' Turbo',
-        key:  level.key + `_turbo_${max_time_s}`,
-        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>x+'Timer'),
+        name: level.name + ' ' + capitalize(name),
+        key:  level.key + `_${name}_${max_time_s}`,
+        make_scenes_fun: ()=>level.make_scenes_fun().map(x=>`${x}${TIMER_PREFIX}`),
         description: level.description + ` with ${max_time_s} seconds timer`
     }
     }
